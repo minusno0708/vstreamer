@@ -27,16 +27,28 @@ handle_server(Sock) ->
             io:format("Received: ~p~n", [States]),
             case States of
                 [<<"GET">>, <<"/">>, _] ->
-                    send_resp(Sock, "200 OK", "Hello, client!");
+                    Header = [
+                        "Content-Type: text/plain\r\n"
+                    ],
+                    send_resp(Sock, "200 OK", Header, "Hello, client!");
                 [<<"GET">>, <<"/page">>, _] ->
                     case read_page("index") of
                         {ok, File} -> 
-                            send_resp(Sock, "200 OK", File);
+                            Header = [
+                                "Content-Type: text/html\r\n"
+                            ],
+                            send_resp(Sock, "200 OK", Header, File);
                         {error, Msg} -> 
-                            send_resp(Sock, "404 Not Found", Msg)
+                            Header = [
+                                "Content-Type: text/plain\r\n"
+                            ],
+                            send_resp(Sock, "404 Not Found", Header, Msg)
                     end;
                 _ ->
-                    send_resp(Sock, "404 Not Found", "Not found!")
+                    Header = [
+                        "Content-Type: text/plain\r\n"
+                    ],
+                    send_resp(Sock, "404 Not Found", Header,"Not found!")
             end,
             handle_server(Sock);
         {error, closed} -> ok
@@ -64,12 +76,12 @@ headers_to_map(HeaderList, HeaderMap) ->
             headers_to_map(Rest, HeaderMap#{Key => Value})
     end.
 
-send_resp(Sock, Status, Body) ->
+send_resp(Sock, Status, Header, Body) ->
     Resp = 
         lists:concat([
         "HTTP/1.1 " ++ Status ++ " \r\n",
-        "Content-Type: text/html\r\n",
         "Content-Length: " ++ integer_to_list(length(Body)) ++ "\r\n",
+        Header,
         "\r\n",
         Body
         ]),
