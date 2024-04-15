@@ -1,10 +1,7 @@
 -module(server).
--export([main/1, start/1]).
+-export([start/1]).
 
 -import(pages, [read_page/1]).
-
-main(_) ->
-    start(8080).
 
 start(Port) ->
     io:format("Start streaming server on ~p~n", [Port]),
@@ -32,17 +29,23 @@ handle_server(Sock) ->
                     ],
                     send_resp(Sock, "200 OK", Header, "Hello, client!");
                 [<<"GET">>, <<"/page">>, _] ->
-                    case read_page("index") of
+                    {ok, File} = read_page(<<"index">>),
+                    Header = [
+                        "Content-Type: text/html\r\n"
+                    ],
+                    send_resp(Sock, "200 OK", Header, File);
+                [<<"GET">>, <<"/page/", PageName/binary>>, _] ->
+                    case read_page(PageName) of
                         {ok, File} -> 
                             Header = [
                                 "Content-Type: text/html\r\n"
                             ],
                             send_resp(Sock, "200 OK", Header, File);
-                        {error, Msg} -> 
+                        {error, File} -> 
                             Header = [
-                                "Content-Type: text/plain\r\n"
+                                "Content-Type: text/html\r\n"
                             ],
-                            send_resp(Sock, "404 Not Found", Header, Msg)
+                            send_resp(Sock, "404 Not Found", Header, File)
                     end;
                 _ ->
                     Header = [
