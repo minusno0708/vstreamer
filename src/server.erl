@@ -1,8 +1,7 @@
 -module(server).
--export([start/0]).
+-export([start/1]).
 
-start() ->
-    Port = 8080,
+start(Port) ->
     io:format("Start streaming server on ~p~n", [Port]),
     case gen_tcp:listen(Port, [binary, {packet, 0}, {active, false}, {reuseaddr, true}]) of
         {ok, LSock} -> 
