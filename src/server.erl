@@ -1,5 +1,10 @@
 -module(server).
--export([start/1]).
+-export([main/1, start/1]).
+
+-import(pages, [read_page/1]).
+
+main(_) ->
+    start(8080).
 
 start(Port) ->
     io:format("Start streaming server on ~p~n", [Port]),
@@ -23,6 +28,13 @@ handle_server(Sock) ->
             case States of
                 [<<"GET">>, <<"/">>, _] ->
                     send_resp(Sock, "200 OK", "Hello, client!");
+                [<<"GET">>, <<"/page">>, _] ->
+                    case read_page("index") of
+                        {ok, File} -> 
+                            send_resp(Sock, "200 OK", File);
+                        {error, Msg} -> 
+                            send_resp(Sock, "404 Not Found", Msg)
+                    end;
                 _ ->
                     send_resp(Sock, "404 Not Found", "Not found!")
             end,
@@ -56,7 +68,7 @@ send_resp(Sock, Status, Body) ->
     Resp = 
         lists:concat([
         "HTTP/1.1 " ++ Status ++ " \r\n",
-        "Content-Type: text/plain\r\n",
+        "Content-Type: text/html\r\n",
         "Content-Length: " ++ integer_to_list(length(Body)) ++ "\r\n",
         "\r\n",
         Body
