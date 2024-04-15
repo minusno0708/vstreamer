@@ -42,21 +42,21 @@ read_req(Sock) ->
         {error, closed} -> {error, closed}
     end.
 
-headers_to_map(Headers, Map) ->
-    case Headers of
-        [] -> Map;
+headers_to_map(HeaderList, HeaderMap) ->
+    case HeaderList of
+        [] -> HeaderMap;
         [Header | Rest] -> 
             [Key, Value] = string:split(Header, ": ", all),
-            headers_to_map(Rest, Map#{Key => Value})
+            headers_to_map(Rest, HeaderMap#{Key => Value})
     end.
 
 send_resp(Sock, Status, Body) ->
-    Headers = 
-        [
+    Resp = 
+        lists:concat([
         "HTTP/1.1 " ++ Status ++ " \r\n",
         "Content-Type: text/plain\r\n",
         "Content-Length: " ++ integer_to_list(length(Body)) ++ "\r\n",
-        "\r\n"
-        ],
-    Resp = lists:concat(Headers) ++ Body,
+        "\r\n",
+        Body
+        ]),
     gen_tcp:send(Sock, Resp).
