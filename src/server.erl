@@ -34,7 +34,10 @@ handle_server(Sock) ->
 read_req(Sock) ->
     case gen_tcp:recv(Sock, 0) of
         {ok, Data} -> 
-            [Header, Body] = string:split(Data, "\r\n\r\n", all),
+            [Header, Body] = case string:split(Data, "\r\n\r\n", all) of
+                [H, B] -> [H, B];
+                [H] -> [H, <<"">>]
+            end,
             [StateField | HeaderField] = string:split(Header, "\r\n", all),
             States = string:split(StateField, " ", all),
             Headers = headers_to_map(HeaderField, #{}),
