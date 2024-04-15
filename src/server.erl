@@ -14,14 +14,26 @@ start() ->
 
 loop_acceptor(LSock) ->
     {ok, Sock} = gen_tcp:accept(LSock),
-    spawn(fun() -> do_recv(Sock) end),
-    loop_acceptor(LSock).
+    spawn(fun() -> handle_server(Sock) end),
+    loop_acceptor(LSock).    
     
-do_recv(Sock) ->
+handle_server(Sock) ->
     case gen_tcp:recv(Sock, 0) of
-        {ok, Data} -> 
-            io:format("Received: ~p~n", [Data]),
-            gen_tcp:send(Sock, Data),
-            do_recv(Sock);
+        {ok, Msg} -> 
+            io:format("Received: ~p~n", [Msg]),
+            send_resp(Sock),
+            handle_server(Sock);
         {error, closed} -> ok
     end.
+
+send_resp(Sock) ->
+    Msg = "Hello, client!",
+    Headers = 
+        [
+        "HTTP/1.1 200 OK\r\n",
+        "Content-Type: text/plain\r\n",
+        "Content-Length: " ++ integer_to_list(length(Msg)) ++ "\r\n",
+        "\r\n"
+        ],
+    Resp = lists:concat(Headers) ++ Msg,
+    gen_tcp:send(Sock, Resp).
