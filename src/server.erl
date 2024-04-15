@@ -36,8 +36,7 @@ read_req(Sock) ->
         {ok, Data} -> 
             [Header, Body] = string:split(Data, "\r\n\r\n", all),
             [StateField | HeaderField] = string:split(Header, "\r\n", all),
-            [Method, Path, Version] = string:split(StateField, " ", all),
-            States = [Method, Path, Version],
+            States = string:split(StateField, " ", all),
             Headers = headers_to_map(HeaderField, #{}),
             {ok, States, Headers, Body};
         {error, closed} -> {error, closed}
