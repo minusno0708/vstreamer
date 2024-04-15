@@ -18,12 +18,35 @@ loop_acceptor(LSock) ->
     loop_acceptor(LSock).    
     
 handle_server(Sock) ->
-    case gen_tcp:recv(Sock, 0) of
-        {ok, Msg} -> 
-            io:format("Received: ~p~n", [Msg]),
+    case read_req(Sock) of
+        {ok, _State, _Headers, _Body} -> 
             send_resp(Sock),
             handle_server(Sock);
         {error, closed} -> ok
+    end.
+
+read_req(Sock) ->
+    case gen_tcp:recv(Sock, 0) of
+        {ok, Data} -> 
+            [Header, Body] = string:split(Data, "\r\n\r\n", all),
+            [StateField | HeaderField] = string:split(Header, "\r\n", all),
+            [Method, Path, Version] = string:split(StateField, " ", all),
+            State = #{
+                method => Method,
+                path => Path,
+                version => Version
+            },
+            Headers = headers_to_map(HeaderField, #{}),
+            {ok, State, Headers, Body};
+        {error, closed} -> {error, closed}
+    end.
+
+headers_to_map(Headers, Map) ->
+    case Headers of
+        [] -> Map;
+        [Header | Rest] -> 
+            [Key, Value] = string:split(Header, ": ", all),
+            headers_to_map(Rest, Map#{Key => Value})
     end.
 
 send_resp(Sock) ->
