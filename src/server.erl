@@ -19,8 +19,14 @@ loop_acceptor(LSock) ->
     
 handle_server(Sock) ->
     case read_req(Sock) of
-        {ok, _State, _Headers, _Body} -> 
-            send_resp(Sock),
+        {ok, States, _Headers, _Body} ->
+            io:format("Received: ~p~n", [States]),
+            case States of
+                [<<"GET">>, <<"/">>, _] ->
+                    send_resp(Sock, "200 OK", "Hello, client!");
+                _ ->
+                    send_resp(Sock, "404 Not Found", "Not found!")
+            end,
             handle_server(Sock);
         {error, closed} -> ok
     end.
@@ -31,13 +37,9 @@ read_req(Sock) ->
             [Header, Body] = string:split(Data, "\r\n\r\n", all),
             [StateField | HeaderField] = string:split(Header, "\r\n", all),
             [Method, Path, Version] = string:split(StateField, " ", all),
-            State = #{
-                method => Method,
-                path => Path,
-                version => Version
-            },
+            States = [Method, Path, Version],
             Headers = headers_to_map(HeaderField, #{}),
-            {ok, State, Headers, Body};
+            {ok, States, Headers, Body};
         {error, closed} -> {error, closed}
     end.
 
@@ -49,14 +51,13 @@ headers_to_map(Headers, Map) ->
             headers_to_map(Rest, Map#{Key => Value})
     end.
 
-send_resp(Sock) ->
-    Msg = "Hello, client!",
+send_resp(Sock, Status, Body) ->
     Headers = 
         [
-        "HTTP/1.1 200 OK\r\n",
+        "HTTP/1.1 " ++ Status ++ " \r\n",
         "Content-Type: text/plain\r\n",
-        "Content-Length: " ++ integer_to_list(length(Msg)) ++ "\r\n",
+        "Content-Length: " ++ integer_to_list(length(Body)) ++ "\r\n",
         "\r\n"
         ],
-    Resp = lists:concat(Headers) ++ Msg,
+    Resp = lists:concat(Headers) ++ Body,
     gen_tcp:send(Sock, Resp).
