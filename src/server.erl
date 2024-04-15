@@ -1,8 +1,7 @@
 -module(server).
--export([start/0]).
+-export([start/1]).
 
-start() ->
-    Port = 8080,
+start(Port) ->
     io:format("Start streaming server on ~p~n", [Port]),
     case gen_tcp:listen(Port, [binary, {packet, 0}, {active, false}, {reuseaddr, true}]) of
         {ok, LSock} -> 
@@ -34,30 +33,32 @@ handle_server(Sock) ->
 read_req(Sock) ->
     case gen_tcp:recv(Sock, 0) of
         {ok, Data} -> 
-            [Header, Body] = string:split(Data, "\r\n\r\n", all),
+            [Header, Body] = case string:split(Data, "\r\n\r\n", all) of
+                [H, B] -> [H, B];
+                [H] -> [H, <<"">>]
+            end,
             [StateField | HeaderField] = string:split(Header, "\r\n", all),
-            [Method, Path, Version] = string:split(StateField, " ", all),
-            States = [Method, Path, Version],
+            States = string:split(StateField, " ", all),
             Headers = headers_to_map(HeaderField, #{}),
             {ok, States, Headers, Body};
         {error, closed} -> {error, closed}
     end.
 
-headers_to_map(Headers, Map) ->
-    case Headers of
-        [] -> Map;
+headers_to_map(HeaderList, HeaderMap) ->
+    case HeaderList of
+        [] -> HeaderMap;
         [Header | Rest] -> 
             [Key, Value] = string:split(Header, ": ", all),
-            headers_to_map(Rest, Map#{Key => Value})
+            headers_to_map(Rest, HeaderMap#{Key => Value})
     end.
 
 send_resp(Sock, Status, Body) ->
-    Headers = 
-        [
+    Resp = 
+        lists:concat([
         "HTTP/1.1 " ++ Status ++ " \r\n",
         "Content-Type: text/plain\r\n",
         "Content-Length: " ++ integer_to_list(length(Body)) ++ "\r\n",
-        "\r\n"
-        ],
-    Resp = lists:concat(Headers) ++ Body,
+        "\r\n",
+        Body
+        ]),
     gen_tcp:send(Sock, Resp).
