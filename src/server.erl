@@ -41,7 +41,7 @@ handle_server(Sock) ->
                             Header = [
                                 "Content-Type: text/html\r\n"
                             ],
-                            spawn(fun() -> send_resp(Sock, "200 OK", Header, File) end);
+                            send_resp(Sock, "200 OK", Header, File);
                         {error, File} -> 
                             Header = [
                                 "Content-Type: text/html\r\n"
@@ -51,7 +51,7 @@ handle_server(Sock) ->
                 [<<"GET">>, <<"/video/", VideoName/binary>>, _] ->
                     case load_video(VideoName) of
                         {ok, File} -> 
-                            stream(Sock, File);
+                            spawn(fun() -> stream(Sock, File) end);
                         {error, _} -> 
                             Header = [
                                 "Content-Type: text/plain\r\n"
