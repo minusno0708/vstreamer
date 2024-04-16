@@ -2,7 +2,7 @@
 -export([start/1]).
 
 -import(pages, [read_page/1]).
--import(stream, [load_video/1]).
+-import(stream, [load_video/1, stream/2]).
 
 start(Port) ->
     io:format("Start streaming server on ~p~n", [Port]),
@@ -41,7 +41,7 @@ handle_server(Sock) ->
                             Header = [
                                 "Content-Type: text/html\r\n"
                             ],
-                            send_resp(Sock, "200 OK", Header, File);
+                            spawn(fun() -> send_resp(Sock, "200 OK", Header, File) end);
                         {error, File} -> 
                             Header = [
                                 "Content-Type: text/html\r\n"
@@ -51,10 +51,7 @@ handle_server(Sock) ->
                 [<<"GET">>, <<"/video/", VideoName/binary>>, _] ->
                     case load_video(VideoName) of
                         {ok, File} -> 
-                            Header = [
-                                "Content-Type: video/mp4\r\n"
-                            ],
-                            send_resp(Sock, "200 OK", Header, File);
+                            stream(Sock, File);
                         {error, _} -> 
                             Header = [
                                 "Content-Type: text/plain\r\n"
