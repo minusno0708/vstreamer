@@ -2,7 +2,7 @@
 -export([start/1]).
 
 -import(files, [read_page/1]).
--import(stream, [load_video/1, stream/2]).
+-import(stream, [load_video/1, send_playlist/2, send_segment/2]).
 
 start(Port) ->
     io:format("Start streaming server on ~p~n", [Port]),
@@ -48,10 +48,14 @@ handle_server(Sock) ->
                             ],
                             send_resp(Sock, "404 Not Found", Header, File)
                     end;
+                [<<"GET">>, <<"/video/ts/", SegmentFile/binary>>, _] ->
+                    {ok, File} = load_video(SegmentFile),
+                    io:format("Sending segment: ~p~n", [SegmentFile]),
+                    send_segment(Sock, File);
                 [<<"GET">>, <<"/video/", VideoName/binary>>, _] ->
-                    case load_video(VideoName) of
+                    case load_video(<<VideoName/binary, ".m3u8">>) of
                         {ok, File} -> 
-                            spawn(fun() -> stream(Sock, File) end);
+                            send_playlist(Sock, File);
                         {error, _} -> 
                             Header = [
                                 "Content-Type: text/plain\r\n"
