@@ -1,7 +1,7 @@
 -module(server).
 -export([start/1]).
 
--import(pages, [read_page/1]).
+-import(files, [read_page/1]).
 -import(stream, [load_video/1, stream/2]).
 
 start(Port) ->
