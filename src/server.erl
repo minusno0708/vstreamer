@@ -50,7 +50,6 @@ handle_server(Sock) ->
                     end;
                 [<<"GET">>, <<"/video/ts/", SegmentFile/binary>>, _] ->
                     {ok, File} = load_video(SegmentFile),
-                    io:format("Sending segment: ~p~n", [SegmentFile]),
                     send_segment(Sock, File);
                 [<<"GET">>, <<"/video/", VideoName/binary>>, _] ->
                     case load_video(<<VideoName/binary, ".m3u8">>) of

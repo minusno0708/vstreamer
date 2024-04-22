@@ -5,29 +5,29 @@ load_video(FileName) ->
     Path = "../videos/" ++ binary_to_list(FileName), 
     case file:read_file(Path) of
         {ok, File} ->
-            {ok, binary_to_list(File)};
+            {ok, File};
         {error, Reason} ->
             {error, Reason}
     end.
 
 send_playlist(Sock, Playlist) ->
     Resp = 
-        lists:concat([
+        <<
         "HTTP/1.1 200 OK \r\n",
-        "Content-Length: " ++ integer_to_list(length(Playlist)) ++ "\r\n",
+        "Content-Length: ", (length(binary_to_list(Playlist))), "\r\n",
         "Content-Type: application/vnd.apple.mpegurl\r\n",
         "\r\n",
-        Playlist
-        ]),
+        Playlist/binary
+        >>,
     gen_tcp:send(Sock, Resp).
 
 send_segment(Sock, Segment) ->
     Resp = 
-        lists:concat([
+        <<
         "HTTP/1.1 200 OK \r\n",
-        "Content-Length: " ++ integer_to_list(length(Segment)) ++ "\r\n",
+        "Content-Length: ", (length(binary_to_list(Segment))), "\r\n",
         "Content-Type: video/mp2t\r\n",
         "\r\n",
         Segment
-        ]),
+        >>,
     gen_tcp:send(Sock, Resp).
