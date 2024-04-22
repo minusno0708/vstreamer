@@ -16,7 +16,7 @@ send_playlist(Sock, Playlist) ->
         lists:concat([
         "HTTP/1.1 200 OK \r\n",
         "Content-Length: " ++ integer_to_list(length(RowPlaylist)) ++ "\r\n",
-        "Content-Type: video/mp2t\r\n",
+        "Content-Type: application/vnd.apple.mpegurl\r\n",
         "\r\n",
         RowPlaylist
         ]),
