@@ -11,23 +11,25 @@ load_video(FileName) ->
     end.
 
 send_playlist(Sock, Playlist) ->
+    RowPlaylist = binary_to_list(Playlist),
     Resp = 
-        <<
+        lists:concat([
         "HTTP/1.1 200 OK \r\n",
-        "Content-Length: ", (length(binary_to_list(Playlist))), "\r\n",
-        "Content-Type: application/vnd.apple.mpegurl\r\n",
+        "Content-Length: " ++ integer_to_list(length(RowPlaylist)) ++ "\r\n",
+        "Content-Type: video/mp2t\r\n",
         "\r\n",
-        Playlist/binary
-        >>,
+        RowPlaylist
+        ]),
     gen_tcp:send(Sock, Resp).
 
 send_segment(Sock, Segment) ->
+    RowSegment = binary_to_list(Segment),
     Resp = 
-        <<
+        lists:concat([
         "HTTP/1.1 200 OK \r\n",
-        "Content-Length: ", (length(binary_to_list(Segment))), "\r\n",
+        "Content-Length: " ++ integer_to_list(length(RowSegment)) ++ "\r\n",
         "Content-Type: video/mp2t\r\n",
         "\r\n",
-        Segment/binary
-        >>,
+        RowSegment
+        ]),
     gen_tcp:send(Sock, Resp).
