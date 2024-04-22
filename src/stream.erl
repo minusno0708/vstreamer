@@ -28,6 +28,6 @@ send_segment(Sock, Segment) ->
         "Content-Length: ", (length(binary_to_list(Segment))), "\r\n",
         "Content-Type: video/mp2t\r\n",
         "\r\n",
-        Segment
+        Segment/binary
         >>,
     gen_tcp:send(Sock, Resp).
