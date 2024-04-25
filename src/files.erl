@@ -15,12 +15,19 @@ read_page(FileName) ->
 
 encode_video(FileName) ->
     Path = "../videos/" ++ FileName ++ ".mp4",
-    Output = "../videos/" ++ FileName ++ ".m3u8",
+    Output = "../videos/" ++ FileName ++ ".mpd",
+    BitConfig = [
+        {row, "1M -s 720x480"},
+        {medium, "2M -s 1280x720"},
+        {high, "5M -s 1920x1080"}   
+    ],
 
     Command = lists:concat([
         "ffmpeg -i ",
         Path,
-        " -g 60 -hls_time 2 -hls_list_size 0 -hls_segment_size 500000 ",
+        " -c:v libx264 -b:v ",
+        proplists:get_value(medium, BitConfig),
+        " -keyint_min 150 -g 150 -sc_threshold 0 -profile:v high -preset slow -an -f dash ",
         Output
     ]),
     os:cmd(Command).
