@@ -48,14 +48,21 @@ handle_server(Sock) ->
                             ],
                             send_resp(Sock, "404 Not Found", Header, File)
                     end;
-                [<<"GET">>, <<"/video/ts/", SegmentFile/binary>>, _] ->
-                    {ok, File} = load_video(SegmentFile),
-                    send_segment(Sock, File);
                 [<<"GET">>, <<"/video/", VideoName/binary>>, _] ->
-                    case load_video(<<VideoName/binary, ".m3u8">>) of
+                    case load_video(<<VideoName/binary, ".mpd">>) of
                         {ok, File} -> 
                             send_playlist(Sock, File);
                         {error, _} -> 
+                            Header = [
+                                "Content-Type: text/plain\r\n"
+                            ],
+                            send_resp(Sock, "404 Not Found", Header,"Not found!")
+                    end;
+                [<<"GET">>, <<"/", SegmentFile/binary>>, _] ->
+                    case load_video(SegmentFile) of
+                        {ok, File} ->
+                            send_segment(Sock, File);
+                        {error, _} ->
                             Header = [
                                 "Content-Type: text/plain\r\n"
                             ],

@@ -11,25 +11,27 @@ load_video(FileName) ->
     end.
 
 send_playlist(Sock, Playlist) ->
-    RowPlaylist = binary_to_list(Playlist),
-    Resp = 
+    RawPlaylist = binary_to_list(Playlist),
+    Resp =
         lists:concat([
         "HTTP/1.1 200 OK \r\n",
-        "Content-Length: " ++ integer_to_list(length(RowPlaylist)) ++ "\r\n",
-        "Content-Type: application/vnd.apple.mpegurl\r\n",
+        "Content-Length: " ++ integer_to_list(length(RawPlaylist)) ++ "\r\n",
+        "Content-Type: application/dash+xml\r\n",
+        "Access-Control-Allow-Origin: *\r\n"
         "\r\n",
-        RowPlaylist
+        RawPlaylist
         ]),
     gen_tcp:send(Sock, Resp).
 
 send_segment(Sock, Segment) ->
-    RowSegment = binary_to_list(Segment),
-    Resp = 
+    RawSegment = binary_to_list(Segment),
+    Resp =
         lists:concat([
         "HTTP/1.1 200 OK \r\n",
-        "Content-Length: " ++ integer_to_list(length(RowSegment)) ++ "\r\n",
-        "Content-Type: video/mp2t\r\n",
+        "Content-Length: " ++ integer_to_list(length(RawSegment)) ++ "\r\n",
+        "Content-Type: video/mp4\r\n",
+        "Access-Control-Allow-Origin: *\r\n"
         "\r\n",
-        RowSegment
+        RawSegment
         ]),
     gen_tcp:send(Sock, Resp).
