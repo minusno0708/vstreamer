@@ -5,7 +5,11 @@ load_video(FileName) ->
     Path = "../videos/" ++ binary_to_list(FileName), 
     case file:read_file(Path) of
         {ok, File} ->
-            {ok, File};
+            case string:split(binary_to_list(FileName), ".", all) of
+                [_, "mpd"] -> {manifest, File};
+                [_, "m4s"] -> {segment, File};
+                _ -> {error, "Invalid file type"}
+            end;
         {error, Reason} ->
             {error, Reason}
     end.
@@ -16,7 +20,7 @@ send_manifest(Sock, Manifest) ->
         lists:concat([
         "HTTP/1.1 200 OK \r\n",
         "Content-Length: " ++ integer_to_list(length(RawManifest)) ++ "\r\n",
-        "Content-Type: application/dash+xml\r\n",
+        "Content-Type: video/mp4\r\n",
         "Access-Control-Allow-Origin: *\r\n"
         "\r\n",
         RawManifest
