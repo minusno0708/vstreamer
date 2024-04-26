@@ -1,5 +1,5 @@
 -module(stream).
--export([load_video/1, send_playlist/2, send_segment/2]).
+-export([load_video/1, send_manifest/2, send_segment/2]).
 
 load_video(FileName) ->
     Path = "../videos/" ++ binary_to_list(FileName), 
@@ -10,16 +10,16 @@ load_video(FileName) ->
             {error, Reason}
     end.
 
-send_playlist(Sock, Playlist) ->
-    RawPlaylist = binary_to_list(Playlist),
+send_manifest(Sock, Manifest) ->
+    RawManifest = binary_to_list(Manifest),
     Resp =
         lists:concat([
         "HTTP/1.1 200 OK \r\n",
-        "Content-Length: " ++ integer_to_list(length(RawPlaylist)) ++ "\r\n",
+        "Content-Length: " ++ integer_to_list(length(RawManifest)) ++ "\r\n",
         "Content-Type: application/dash+xml\r\n",
         "Access-Control-Allow-Origin: *\r\n"
         "\r\n",
-        RawPlaylist
+        RawManifest
         ]),
     gen_tcp:send(Sock, Resp).
 
