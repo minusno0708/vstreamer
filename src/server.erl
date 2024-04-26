@@ -52,10 +52,10 @@ handle_server(Sock) ->
                     case read_page(<<"video">>) of
                         {ok, File} -> 
                             Header = [
-                                "Content-Type: text/html\r\n",
-                                "Video-Name: " ++ binary_to_list(VideoName) ++ "\r\n"
+                                "Content-Type: text/html\r\n"
                             ],
-                            send_resp(Sock, "200 OK", Header, File);
+                            send_resp(Sock, "200 OK", Header, 
+                                re:replace(File, "%%VIDEO_NAME%%", binary_to_list(VideoName), [{return, list}]));
                         {error, _} -> 
                             Header = [
                                 "Content-Type: text/plain\r\n"

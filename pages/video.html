@@ -10,9 +10,10 @@
     <video id="videoPlayer" width="640" controls></video>
     <script>
         (function(){
-            var url = "http://localhost:8080/sample.mpd";
+            var url = "http://localhost:8080/%%VIDEO_NAME%%.mpd";
             var player = dashjs.MediaPlayer().create();
             player.initialize(document.querySelector("#videoPlayer"), url, true);
         })();
     </script>
 </body>
+</html>
