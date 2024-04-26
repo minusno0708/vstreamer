@@ -2,7 +2,7 @@
 -export([start/1]).
 
 -import(files, [read_page/1]).
--import(stream, [load_video/1, send_playlist/2, send_segment/2]).
+-import(stream, [load_video/1, send_manifest/2, send_segment/2]).
 
 start(Port) ->
     io:format("Start streaming server on ~p~n", [Port]),
@@ -49,9 +49,13 @@ handle_server(Sock) ->
                             send_resp(Sock, "404 Not Found", Header, File)
                     end;
                 [<<"GET">>, <<"/video/", VideoName/binary>>, _] ->
-                    case load_video(<<VideoName/binary, ".mpd">>) of
+                    case read_page(<<"video">>) of
                         {ok, File} -> 
-                            send_playlist(Sock, File);
+                            Header = [
+                                "Content-Type: text/html\r\n",
+                                "Video-Name: " ++ binary_to_list(VideoName) ++ "\r\n"
+                            ],
+                            send_resp(Sock, "200 OK", Header, File);
                         {error, _} -> 
                             Header = [
                                 "Content-Type: text/plain\r\n"
@@ -60,7 +64,9 @@ handle_server(Sock) ->
                     end;
                 [<<"GET">>, <<"/", SegmentFile/binary>>, _] ->
                     case load_video(SegmentFile) of
-                        {ok, File} ->
+                        {manifest, File} ->
+                            send_manifest(Sock, File);
+                        {segment, File} ->
                             send_segment(Sock, File);
                         {error, _} ->
                             Header = [

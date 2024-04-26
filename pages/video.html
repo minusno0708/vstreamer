@@ -1,0 +1,18 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>MPEG-DASH Video Streaming</title>
+    <script src="https://cdn.jsdelivr.net/npm/dashjs@4.0.0/dist/dash.all.min.js"></script>
+</head>
+<body>
+    <h1>Video Streaming Server</h1>
+    <video id="videoPlayer" width="640" controls></video>
+    <script>
+        (function(){
+            var url = "http://localhost:8080/sample.mpd";
+            var player = dashjs.MediaPlayer().create();
+            player.initialize(document.querySelector("#videoPlayer"), url, true);
+        })();
+    </script>
+</body>
