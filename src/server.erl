@@ -35,20 +35,7 @@ handle_server(Sock) ->
                         "Content-Type: text/html\r\n"
                     ],
                     send_resp(Sock, "200 OK", Header, File);
-                [<<"GET">>, <<"/page/", PageName/binary>>, _] ->
-                    case read_page(PageName) of
-                        {ok, File} -> 
-                            Header = [
-                                "Content-Type: text/html\r\n"
-                            ],
-                            send_resp(Sock, "200 OK", Header, File);
-                        {error, File} -> 
-                            Header = [
-                                "Content-Type: text/html\r\n"
-                            ],
-                            send_resp(Sock, "404 Not Found", Header, File)
-                    end;
-                [<<"GET">>, <<"/video/", VideoName/binary>>, _] ->
+                [<<"GET">>, <<"/page/", VideoName/binary>>, _] ->
                     case read_page(<<"video">>) of
                         {ok, File} -> 
                             Header = [
@@ -56,14 +43,14 @@ handle_server(Sock) ->
                             ],
                             send_resp(Sock, "200 OK", Header, 
                                 re:replace(File, "%%VIDEO_NAME%%", binary_to_list(VideoName), [{return, list}]));
-                        {error, _} -> 
+                        {error, File} -> 
                             Header = [
-                                "Content-Type: text/plain\r\n"
+                                "Content-Type: text/html\r\n"
                             ],
-                            send_resp(Sock, "404 Not Found", Header,"Not found!")
+                            send_resp(Sock, "404 Not Found", Header, File)
                     end;
-                [<<"GET">>, <<"/", SegmentFile/binary>>, _] ->
-                    case load_video(SegmentFile) of
+                [<<"GET">>, <<"/video/", VideoPath/binary>>, _] ->
+                    case load_video(VideoPath) of
                         {manifest, File} ->
                             send_manifest(Sock, File);
                         {segment, File} ->

@@ -1,11 +1,12 @@
 -module(stream).
 -export([load_video/1, send_manifest/2, send_segment/2]).
 
-load_video(FileName) ->
-    Path = "../videos/" ++ binary_to_list(FileName), 
+
+load_video(VideoPath) ->
+    Path = "../videos/" ++ binary_to_list(VideoPath), 
     case file:read_file(Path) of
         {ok, File} ->
-            case string:split(binary_to_list(FileName), ".", all) of
+            case string:split(binary_to_list(VideoPath), ".", all) of
                 [_, "mpd"] -> {manifest, File};
                 [_, "m4s"] -> {segment, File};
                 _ -> {error, "Invalid file type"}
@@ -15,6 +16,7 @@ load_video(FileName) ->
     end.
 
 send_manifest(Sock, Manifest) ->
+    io:format("Sending manifest~n"),
     RawManifest = binary_to_list(Manifest),
     Resp =
         lists:concat([

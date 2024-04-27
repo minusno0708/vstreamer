@@ -14,8 +14,11 @@ read_page(FileName) ->
     end.
 
 encode_video(FileName) ->
+    os:cmd("mkdir -p ../videos/" ++ FileName),
+
     Path = "../videos/" ++ FileName ++ ".mp4",
-    Output = "../videos/" ++ FileName ++ ".mpd",
+    Output = "../videos/" ++ FileName ++ "/manifest.mpd",
+    
     BitConfig = [
         {row, "1M -s 720x480"},
         {medium, "2M -s 1280x720"},
