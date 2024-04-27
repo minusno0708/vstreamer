@@ -1,5 +1,5 @@
 -module(files).
--export([read_page/1, load_video/1, encode_video/1]).
+-export([read_page/1, is_exist_video/1, load_video/1, encode_video/1]).
 
 read_page(FileName) ->
     Path = "../pages/" ++ binary_to_list(FileName) ++ ".html",
@@ -11,6 +11,12 @@ read_page(FileName) ->
             {ok, File} = file:read_file("../pages/404.html"),
             PlainFile = binary_to_list(File),
             {error, PlainFile}
+    end.
+
+is_exist_video(VideoName) ->
+    case filelib:is_dir("../videos/" ++ binary_to_list(VideoName)) of
+        true -> true;
+        false -> false
     end.
 
 load_video(VideoPath) ->
