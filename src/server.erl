@@ -34,7 +34,20 @@ handle_server(Sock) ->
                         "Content-Type: text/html\r\n"
                     ],
                     send_resp(Sock, "200 OK", Header, File);
-                [<<"GET">>, <<"/page/", VideoName/binary>>, _] ->
+                [<<"GET">>, <<"/page/", PageName/binary>>, _] ->
+                    case read_page(PageName) of
+                        {ok, File} ->
+                            Header = [
+                                "Content-Type: text/html\r\n"
+                            ],
+                            send_resp(Sock, "200 OK", Header, File);
+                        {error, File} ->
+                            Header = [
+                                "Content-Type: text/html\r\n"
+                            ],
+                            send_resp(Sock, "404 Not Found", Header, File)
+                    end;
+                [<<"GET">>, <<"/video/", VideoName/binary>>, _] ->
                     case is_exist_video(VideoName) of
                         true ->
                             {ok, File} = read_page(<<"video">>),
@@ -50,7 +63,7 @@ handle_server(Sock) ->
                             ],
                             send_resp(Sock, "404 Not Found", Header, File)
                     end;
-                [<<"GET">>, <<"/video/", VideoPath/binary>>, _] ->
+                [<<"GET">>, <<"/stream/", VideoPath/binary>>, _] ->
                     case load_video(VideoPath) of
                         {manifest, File} ->
                             Header = [
