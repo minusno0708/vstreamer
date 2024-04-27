@@ -49,7 +49,7 @@ encode_video(FileName) ->
         Path,
         " -c:v libx264 -b:v ",
         proplists:get_value(medium, BitConfig),
-        " -keyint_min 150 -g 150 -sc_threshold 0 -profile:v high -preset slow -an -f dash ",
+        " -keyint_min 150 -g 150 -sc_threshold 0 -profile:v high -preset slow -c:a aac -ac 2 -b:a 128k -f dash ",
         Output
     ]),
     os:cmd(Command).
