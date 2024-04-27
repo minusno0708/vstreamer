@@ -1,8 +1,7 @@
 -module(server).
 -export([start/1]).
 
--import(files, [read_page/1]).
--import(stream, [load_video/1, send_manifest/2, send_segment/2]).
+-import(files, [read_page/1, load_video/1]).
 
 start(Port) ->
     io:format("Start streaming server on ~p~n", [Port]),
@@ -52,9 +51,17 @@ handle_server(Sock) ->
                 [<<"GET">>, <<"/video/", VideoPath/binary>>, _] ->
                     case load_video(VideoPath) of
                         {manifest, File} ->
-                            send_manifest(Sock, File);
+                            Header = [
+                                "Content-Type: video/mp4\r\n",
+                                "Access-Control-Allow-Origin: *\r\n"
+                            ],
+                            send_resp(Sock, "200 OK", Header, binary_to_list(File));
                         {segment, File} ->
-                            send_segment(Sock, File);
+                            Header = [
+                                "Content-Type: video/mp4\r\n",
+                                "Access-Control-Allow-Origin: *\r\n"
+                            ],
+                            send_resp(Sock, "200 OK", Header, binary_to_list(File));
                         {error, _} ->
                             Header = [
                                 "Content-Type: text/plain\r\n"

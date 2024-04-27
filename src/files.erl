@@ -1,5 +1,5 @@
 -module(files).
--export([read_page/1, encode_video/1]).
+-export([read_page/1, load_video/1, encode_video/1]).
 
 read_page(FileName) ->
     Path = "../pages/" ++ binary_to_list(FileName) ++ ".html",
@@ -13,12 +13,25 @@ read_page(FileName) ->
             {error, PlainFile}
     end.
 
+load_video(VideoPath) ->
+    Path = "../videos/" ++ binary_to_list(VideoPath), 
+    case file:read_file(Path) of
+        {ok, File} ->
+            case string:split(binary_to_list(VideoPath), ".", all) of
+                [_, "mpd"] -> {manifest, File};
+                [_, "m4s"] -> {segment, File};
+                _ -> {error, "Invalid file type"}
+            end;
+        {error, Reason} ->
+            {error, Reason}
+    end.
+
 encode_video(FileName) ->
     os:cmd("mkdir -p ../videos/" ++ FileName),
 
     Path = "../videos/" ++ FileName ++ ".mp4",
     Output = "../videos/" ++ FileName ++ "/manifest.mpd",
-    
+
     BitConfig = [
         {row, "1M -s 720x480"},
         {medium, "2M -s 1280x720"},
