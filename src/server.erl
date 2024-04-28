@@ -1,8 +1,7 @@
 -module(server).
 -export([start/1]).
 
--import(pages, [read_page/1]).
--import(stream, [load_video/1, stream/2]).
+-import(files, [read_page/1, load_video/1, is_exist_video/1]).
 
 start(Port) ->
     io:format("Start streaming server on ~p~n", [Port]),
@@ -25,44 +24,54 @@ handle_server(Sock) ->
             io:format("Received: ~p~n", [States]),
             case States of
                 [<<"GET">>, <<"/">>, _] ->
-                    Header = [
-                        "Content-Type: text/plain\r\n"
-                    ],
-                    send_resp(Sock, "200 OK", Header, "Hello, client!");
+                    Header = <<"Content-Type: text/plain\r\n">>,
+                    send_resp(Sock, 200, Header, <<"Hello, client!">>);
                 [<<"GET">>, <<"/page">>, _] ->
                     {ok, File} = read_page(<<"index">>),
-                    Header = [
-                        "Content-Type: text/html\r\n"
-                    ],
-                    send_resp(Sock, "200 OK", Header, File);
+                    Header = <<"Content-Type: text/html\r\n">>,
+                    send_resp(Sock, 200, Header, File);
                 [<<"GET">>, <<"/page/", PageName/binary>>, _] ->
                     case read_page(PageName) of
-                        {ok, File} -> 
-                            Header = [
-                                "Content-Type: text/html\r\n"
-                            ],
-                            send_resp(Sock, "200 OK", Header, File);
-                        {error, File} -> 
-                            Header = [
-                                "Content-Type: text/html\r\n"
-                            ],
-                            send_resp(Sock, "404 Not Found", Header, File)
+                        {ok, File} ->
+                            Header = <<"Content-Type: text/html\r\n">>,
+                            send_resp(Sock, 200, Header, File);
+                        {error, File} ->
+                            Header = <<"Content-Type: text/html\r\n">>,
+                            send_resp(Sock, 404, Header, File)
                     end;
                 [<<"GET">>, <<"/video/", VideoName/binary>>, _] ->
-                    case load_video(VideoName) of
-                        {ok, File} -> 
-                            spawn(fun() -> stream(Sock, File) end);
-                        {error, _} -> 
-                            Header = [
-                                "Content-Type: text/plain\r\n"
-                            ],
-                            send_resp(Sock, "404 Not Found", Header,"Not found!")
+                    case is_exist_video(VideoName) of
+                        true ->
+                            {ok, File} = read_page(<<"video">>),
+                            Header = <<"Content-Type: text/html\r\n">>,
+                            EmbedFile = re:replace(binary_to_list(File), "%%VIDEO_NAME%%", binary_to_list(VideoName), [{return, list}]),
+                            send_resp(Sock, 200, Header, list_to_binary(EmbedFile));
+                        false ->
+                            {ok, File} = read_page(<<"404">>),
+                            Header = <<"Content-Type: text/html\r\n">>,
+                            send_resp(Sock, 404, Header, File)
+                    end;
+                [<<"GET">>, <<"/stream/", VideoPath/binary>>, _] ->
+                    case load_video(VideoPath) of
+                        {manifest, File} ->
+                            Header = <<
+                                "Content-Type: video/mp4\r\n",
+                                "Access-Control-Allow-Origin: *\r\n"
+                            >>,
+                            send_resp(Sock, 200, Header, File);
+                        {segment, File} ->
+                            Header = <<
+                                "Content-Type: video/mp4\r\n",
+                                "Access-Control-Allow-Origin: *\r\n"
+                            >>,
+                            send_resp(Sock, 200, Header, File);
+                        {error, _} ->
+                            Header = <<"Content-Type: text/plain\r\n">>,
+                            send_resp(Sock, 404, Header, <<"Not found!">>)
                     end;
                 _ ->
-                    Header = [
-                        "Content-Type: text/plain\r\n"
-                    ],
-                    send_resp(Sock, "404 Not Found", Header,"Not found!")
+                    Header = <<"Content-Type: text/plain\r\n">>,
+                    send_resp(Sock, 404, Header, <<"Not found!">>)
             end,
             handle_server(Sock);
         {error, closed} -> ok
@@ -90,13 +99,19 @@ headers_to_map(HeaderList, HeaderMap) ->
             headers_to_map(Rest, HeaderMap#{Key => Value})
     end.
 
+status_msg(StatusCode) ->
+    case StatusCode of
+        200 -> <<"OK">>;
+        404 -> <<"Not Found">>;
+        _ -> <<"Internal Server Error">>
+    end.
+
 send_resp(Sock, Status, Header, Body) ->
-    Resp = 
-        lists:concat([
-        "HTTP/1.1 " ++ Status ++ " \r\n",
-        "Content-Length: " ++ integer_to_list(length(Body)) ++ "\r\n",
-        Header,
+    Resp = <<
+        "HTTP/1.1 ", (integer_to_binary(Status))/binary, (status_msg(Status))/binary, " \r\n",
+        "Content-Length: ", (integer_to_binary(byte_size(Body)))/binary, "\r\n",
+        Header/binary,
         "\r\n",
-        Body
-        ]),
+        Body/binary
+    >>,
     gen_tcp:send(Sock, Resp).
