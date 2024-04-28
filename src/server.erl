@@ -27,7 +27,7 @@ handle_server(Sock) ->
                     Header = [
                         "Content-Type: text/plain\r\n"
                     ],
-                    send_resp(Sock, "200 OK", Header, "Hello, client!");
+                    send_resp(Sock, "200 OK", Header, <<"Hello, client!">>);
                 [<<"GET">>, <<"/page">>, _] ->
                     {ok, File} = read_page(<<"index">>),
                     Header = [
@@ -54,8 +54,8 @@ handle_server(Sock) ->
                             Header = [
                                 "Content-Type: text/html\r\n"
                             ],
-                            send_resp(Sock, "200 OK", Header, 
-                                re:replace(File, "%%VIDEO_NAME%%", binary_to_list(VideoName), [{return, list}]));
+                            EmbedFile = re:replace(binary_to_list(File), "%%VIDEO_NAME%%", binary_to_list(VideoName), [{return, list}]),
+                            send_resp(Sock, "200 OK", Header, list_to_binary(EmbedFile));
                         false ->
                             {ok, File} = read_page(<<"404">>),
                             Header = [
@@ -70,24 +70,24 @@ handle_server(Sock) ->
                                 "Content-Type: video/mp4\r\n",
                                 "Access-Control-Allow-Origin: *\r\n"
                             ],
-                            send_resp(Sock, "200 OK", Header, binary_to_list(File));
+                            send_resp(Sock, "200 OK", Header, File);
                         {segment, File} ->
                             Header = [
                                 "Content-Type: video/mp4\r\n",
                                 "Access-Control-Allow-Origin: *\r\n"
                             ],
-                            send_resp(Sock, "200 OK", Header, binary_to_list(File));
+                            send_resp(Sock, "200 OK", Header, File);
                         {error, _} ->
                             Header = [
                                 "Content-Type: text/plain\r\n"
                             ],
-                            send_resp(Sock, "404 Not Found", Header,"Not found!")
+                            send_resp(Sock, "404 Not Found", Header, <<"Not found!">>)
                     end;
                 _ ->
                     Header = [
                         "Content-Type: text/plain\r\n"
                     ],
-                    send_resp(Sock, "404 Not Found", Header,"Not found!")
+                    send_resp(Sock, "404 Not Found", Header, <<"Not found!">>)
             end,
             handle_server(Sock);
         {error, closed} -> ok
@@ -116,12 +116,13 @@ headers_to_map(HeaderList, HeaderMap) ->
     end.
 
 send_resp(Sock, Status, Header, Body) ->
+    ListBody = binary_to_list(Body),
     Resp = 
         lists:concat([
         "HTTP/1.1 " ++ Status ++ " \r\n",
-        "Content-Length: " ++ integer_to_list(length(Body)) ++ "\r\n",
+        "Content-Length: " ++ integer_to_list(length(ListBody)) ++ "\r\n",
         Header,
         "\r\n",
-        Body
+        ListBody
         ]),
     gen_tcp:send(Sock, Resp).

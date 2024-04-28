@@ -2,15 +2,12 @@
 -export([read_page/1, is_exist_video/1, load_video/1, encode_video/1]).
 
 read_page(FileName) ->
-    Path = "../pages/" ++ binary_to_list(FileName) ++ ".html",
-    case file:read_file(Path) of
+    case file:read_file("../pages/" ++ binary_to_list(FileName) ++ ".html") of
         {ok, File} -> 
-            PlainFile = binary_to_list(File),
-            {ok, PlainFile};
+            {ok, File};
         {error, enoent} -> 
             {ok, File} = file:read_file("../pages/404.html"),
-            PlainFile = binary_to_list(File),
-            {error, PlainFile}
+            {error, File}
     end.
 
 is_exist_video(VideoName) ->
@@ -20,10 +17,10 @@ is_exist_video(VideoName) ->
     end.
 
 load_video(VideoPath) ->
-    Path = "../videos/" ++ binary_to_list(VideoPath), 
-    case file:read_file(Path) of
+    ListVideoPath = binary_to_list(VideoPath),
+    case file:read_file("../videos/" ++ ListVideoPath) of
         {ok, File} ->
-            case string:split(binary_to_list(VideoPath), ".", all) of
+            case string:split(ListVideoPath, ".", all) of
                 [_, "mpd"] -> {manifest, File};
                 [_, "m4s"] -> {segment, File};
                 _ -> {error, "Invalid file type"}
