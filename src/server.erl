@@ -85,12 +85,26 @@ read_req(Sock) ->
         {ok, Data} -> 
             [HeaderSection | BodySection] = string:split(Data, "\r\n\r\n", all),
             [StateLine | HeaderLine] = string:split(HeaderSection, "\r\n", all),
+
+            Status = string:split(StateLine, " ", all),
+            Header = headers_to_map(HeaderLine, #{}),
+            Body = body_conn(BodySection, <<>>),
             
-            {ok, 
-            string:split(StateLine, " ", all),
-            headers_to_map(HeaderLine, #{}),
-            body_conn(BodySection, <<>>)
-            };
+            case byte_size(Body) >=  binary_to_integer(maps:get(<<"Content-Length">>, Header, <<"0">>)) of
+                true -> {ok, Status, Header, Body};
+                false -> continue_recv(Sock, Status, Header, Body)
+            end;
+        {error, closed} -> {error, closed}
+    end.
+
+continue_recv(Sock, Status, Header, PreBody) ->
+    case gen_tcp:recv(Sock, 0) of
+        {ok, Data} ->
+            Body = body_conn([Data], PreBody),
+            case byte_size(Body) >= binary_to_integer(maps:get(<<"Content-Length">>, Header, <<"0">>)) of
+                true -> {ok, Status, Header, Body};
+                false -> continue_recv(Sock, Status, Header, Body)
+            end;
         {error, closed} -> {error, closed}
     end.
 
