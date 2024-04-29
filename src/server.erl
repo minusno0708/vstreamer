@@ -69,6 +69,9 @@ handle_server(Sock) ->
                             Header = <<"Content-Type: text/plain\r\n">>,
                             send_resp(Sock, 404, Header, <<"Not found!">>)
                     end;
+                [<<"POST">>, <<"/upload">>, _] ->
+                    Header = <<"Content-Type: text/plain\r\n">>,
+                    send_resp(Sock, 201, Header, <<"Upload page">>);
                 _ ->
                     Header = <<"Content-Type: text/plain\r\n">>,
                     send_resp(Sock, 404, Header, <<"Not found!">>)
@@ -102,6 +105,7 @@ headers_to_map(HeaderList, HeaderMap) ->
 status_msg(StatusCode) ->
     case StatusCode of
         200 -> <<"200 OK">>;
+        201 -> <<"201 Created">>;
         404 -> <<"404 Not Found">>;
         _ -> <<"Internal Server Error">>
     end.
