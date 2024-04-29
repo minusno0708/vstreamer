@@ -101,14 +101,14 @@ headers_to_map(HeaderList, HeaderMap) ->
 
 status_msg(StatusCode) ->
     case StatusCode of
-        200 -> <<"OK">>;
-        404 -> <<"Not Found">>;
+        200 -> <<"200 OK">>;
+        404 -> <<"404 Not Found">>;
         _ -> <<"Internal Server Error">>
     end.
 
 send_resp(Sock, Status, Header, Body) ->
     Resp = <<
-        "HTTP/1.1 ", (integer_to_binary(Status))/binary, (status_msg(Status))/binary, " \r\n",
+        "HTTP/1.1 ", (status_msg(Status))/binary, " \r\n",
         "Content-Length: ", (integer_to_binary(byte_size(Body)))/binary, "\r\n",
         Header/binary,
         "\r\n",
