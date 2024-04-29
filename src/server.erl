@@ -83,14 +83,14 @@ handle_server(Sock) ->
 read_req(Sock) ->
     case gen_tcp:recv(Sock, 0) of
         {ok, Data} -> 
-            [Header, Body] = case string:split(Data, "\r\n\r\n", all) of
-                [H, B] -> [H, B];
-                [H] -> [H, <<"">>]
-            end,
-            [StateField | HeaderField] = string:split(Header, "\r\n", all),
-            States = string:split(StateField, " ", all),
-            Headers = headers_to_map(HeaderField, #{}),
-            {ok, States, Headers, Body};
+            [HeaderSection | BodySection] = string:split(Data, "\r\n\r\n", all),
+            [StateLine | HeaderLine] = string:split(HeaderSection, "\r\n", all),
+            
+            {ok, 
+            string:split(StateLine, " ", all),
+            headers_to_map(HeaderLine, #{}),
+            body_conn(BodySection, <<>>)
+            };
         {error, closed} -> {error, closed}
     end.
 
@@ -100,6 +100,14 @@ headers_to_map(HeaderList, HeaderMap) ->
         [Header | Rest] -> 
             [Key, Value] = string:split(Header, ": ", all),
             headers_to_map(Rest, HeaderMap#{Key => Value})
+    end.
+
+body_conn(BodySection, Body) ->
+    case BodySection of
+        [] -> Body;
+        [BodyHead] -> <<Body/binary, BodyHead/binary>>;
+        [BodyHead | BodyTail] ->
+            body_conn(BodyTail, <<Body/binary, BodyHead/binary, "\r\n\r\n">>)
     end.
 
 status_msg(StatusCode) ->
