@@ -1,7 +1,7 @@
 -module(server).
 -export([start/1]).
 
--import(files, [read_page/1, load_video/1, is_exist_video/1]).
+-import(files, [read_page/1, load_video/1, is_exist_video/1, download_video/2]).
 
 start(Port) ->
     io:format("Start streaming server on ~p~n", [Port]),
@@ -70,6 +70,8 @@ handle_server(Sock) ->
                             send_resp(Sock, 404, Header, <<"Not found!">>)
                     end;
                 [<<"POST">>, <<"/upload">>, _] ->
+                    download_video("download.txt", _Body),
+
                     Header = <<"Content-Type: text/plain\r\n">>,
                     send_resp(Sock, 201, Header, <<"Upload page">>);
                 _ ->
