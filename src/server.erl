@@ -70,10 +70,16 @@ handle_server(Sock) ->
                             send_resp(Sock, 404, Header, <<"Not found!">>)
                     end;
                 [<<"POST">>, <<"/upload">>, _] ->
-                    download_video("download.txt", _Body),
+                    case extract_video(_Body) of
+                        {ok, VideoName, ExtractVideo} ->
+                            download_video(VideoName, ExtractVideo),
 
-                    Header = <<"Content-Type: text/plain\r\n">>,
-                    send_resp(Sock, 201, Header, <<"Upload page">>);
+                            Header = <<"Content-Type: text/plain\r\n">>,
+                            send_resp(Sock, 201, Header, <<"Upload page">>);
+                        error ->
+                            Header = <<"Content-Type: text/plain\r\n">>,
+                            send_resp(Sock, 500, Header, <<"Failed to download">>)
+                    end;
                 _ ->
                     Header = <<"Content-Type: text/plain\r\n">>,
                     send_resp(Sock, 404, Header, <<"Not found!">>)
@@ -113,9 +119,13 @@ continue_recv(Sock, Status, Header, PreBody) ->
 headers_to_map(HeaderList, HeaderMap) ->
     case HeaderList of
         [] -> HeaderMap;
-        [Header | Rest] -> 
-            [Key, Value] = string:split(Header, ": ", all),
-            headers_to_map(Rest, HeaderMap#{Key => Value})
+        [Header | Rest] ->
+            case string:split(Header, ": ", all) of
+                [Key, Value] -> 
+                    headers_to_map(Rest, HeaderMap#{Key => Value});
+                _ -> 
+                    headers_to_map(Rest, HeaderMap)
+            end
     end.
 
 body_conn(BodySection, Body) ->
@@ -124,6 +134,38 @@ body_conn(BodySection, Body) ->
         [BodyHead] -> <<Body/binary, BodyHead/binary>>;
         [BodyHead | BodyTail] ->
             body_conn(BodyTail, <<Body/binary, BodyHead/binary, "\r\n\r\n">>)
+    end.
+
+extract_video(Body) ->
+    case string:split(Body, "\r\n\r\n", all) of
+        [Header | Video] -> 
+            VideoName = maps:get("filename", 
+                headers_to_map(string:split(
+                repl__mult_words(binary_to_list(Header), [{"; ", "\r\n"}, {"=", ": "}, {"\"", ""}]),
+                "\r\n", all), #{})
+            ),
+            ExtractVideo = video_conn(Video, <<>>),
+            {ok, VideoName, ExtractVideo};
+        _ -> 
+            error
+    end.
+
+repl__mult_words(Text, Replacements) ->
+    case Replacements of
+        [] -> Text;
+        [{Old, New} | Rest] -> repl__mult_words(string:replace(Text, Old, New, all), Rest)
+    end.
+
+video_conn(VideoSection, Video) ->
+    case VideoSection of
+        [] -> Video;
+        [VideoHead] -> 
+            LastVideoElem = string:split(VideoHead, "\r\n", all),
+            <<Video/binary, 
+            (body_conn(lists:sublist(LastVideoElem, length(LastVideoElem)-2), <<>>))/binary,
+            "\r\n">>;
+        [VideoHead | VideoTail] ->
+            video_conn(VideoTail, <<Video/binary, VideoHead/binary, "\r\n\r\n">>)
     end.
 
 status_msg(StatusCode) ->
