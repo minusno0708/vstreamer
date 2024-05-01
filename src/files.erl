@@ -1,5 +1,5 @@
 -module(files).
--export([read_page/1, is_exist_video/1, load_video/1, encode_video/1, download_video/2]).
+-export([read_page/1, is_exist_video/1, load_video/1, encode_video/1, download_video/2, get_video_list/0]).
 
 read_page(FileName) ->
     case file:read_file("../pages/" ++ binary_to_list(FileName) ++ ".html") of
@@ -58,3 +58,30 @@ download_video(Name, Body) ->
 
     encode_video(string:replace(Name, ".mp4", "")),
     os:cmd("rm ../videos/" ++ Name).
+
+get_video_list() ->
+    FileList = filelib:wildcard("../videos/*"),
+    VideoList = get_video_list([], FileList),
+    VideoList.
+
+get_video_list(VideoList, FileList) ->
+    case FileList of
+        [] -> VideoList;
+        [H | T] ->
+            FileName = hd(lists:reverse(string:replace(H, "../videos/", ""))),
+            case string:str(FileName, ".") of
+                0 -> get_video_list([VideoList | embed_video_link(FileName)], T);
+                _ -> get_video_list(VideoList, T)
+            end
+    end.
+
+embed_video_link(VideoName) ->
+    lists:concat([
+        "<li>",
+        "<a href=\"/video/",
+        VideoName,
+        "\">",
+        VideoName,
+        "</a>",
+        "</li>"
+    ]).

@@ -1,7 +1,7 @@
 -module(server).
 -export([start/1]).
 
--import(files, [read_page/1, load_video/1, is_exist_video/1, download_video/2]).
+-import(files, [read_page/1, load_video/1, is_exist_video/1, download_video/2, get_video_list/0]).
 
 start(Port) ->
     io:format("Start streaming server on ~p~n", [Port]),
@@ -30,6 +30,11 @@ handle_server(Sock) ->
                     {ok, File} = read_page(<<"index">>),
                     Header = <<"Content-Type: text/html\r\n">>,
                     send_resp(Sock, 200, Header, File);
+                [<<"GET">>, <<"/page/list">>, _] ->
+                    {ok, File} = read_page(<<"list">>),
+                    Header = <<"Content-Type: text/html\r\n">>,
+                    EmbedFile = re:replace(binary_to_list(File), "%%VIDEO_LIST%%", get_video_list(), [{return, list}]),
+                    send_resp(Sock, 200, Header, list_to_binary(EmbedFile));
                 [<<"GET">>, <<"/page/", PageName/binary>>, _] ->
                     case read_page(PageName) of
                         {ok, File} ->
