@@ -60,8 +60,8 @@ download_video(Name, Body) ->
     os:cmd("rm ../videos/" ++ Name).
 
 get_video_list() ->
-    List = filelib:wildcard("../videos/*"),
-    VideoList = get_video_list([], List),
+    FileList = filelib:wildcard("../videos/*"),
+    VideoList = get_video_list([], FileList),
     VideoList.
 
 get_video_list(VideoList, FileList) ->
@@ -70,7 +70,18 @@ get_video_list(VideoList, FileList) ->
         [H | T] ->
             FileName = hd(lists:reverse(string:replace(H, "../videos/", ""))),
             case string:str(FileName, ".") of
-                0 -> get_video_list([VideoList | FileName], T);
+                0 -> get_video_list([VideoList | embed_video_link(FileName)], T);
                 _ -> get_video_list(VideoList, T)
             end
     end.
+
+embed_video_link(VideoName) ->
+    lists:concat([
+        "<li>",
+        "<a href=\"/video/",
+        VideoName,
+        "\">",
+        VideoName,
+        "</a>",
+        "</li>"
+    ]).
