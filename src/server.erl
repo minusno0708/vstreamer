@@ -78,7 +78,7 @@ handle_server(Sock) ->
                             send_resp(Sock, 201, Header, <<"Upload page">>);
                         error ->
                             Header = <<"Content-Type: text/plain\r\n">>,
-                            send_resp(Sock, 500, Header, <<"Failed to download">>)
+                            send_resp(Sock, 500, Header, <<"Failed to update video">>)
                     end;
                 _ ->
                     Header = <<"Content-Type: text/plain\r\n">>,
@@ -137,17 +137,16 @@ body_conn(BodySection, Body) ->
     end.
 
 extract_video(Body) ->
-    case string:split(Body, "\r\n\r\n", all) of
-        [Header | Video] -> 
-            VideoName = maps:get("filename", 
-                headers_to_map(string:split(
-                repl__mult_words(binary_to_list(Header), [{"; ", "\r\n"}, {"=", ": "}, {"\"", ""}]),
-                "\r\n", all), #{})
-            ),
+    [Header | Video] = string:split(Body, "\r\n\r\n", all),
+    case maps:find("filename", 
+        headers_to_map(string:split(
+        repl__mult_words(binary_to_list(Header), [{"; ", "\r\n"}, {"=", ": "}, {"\"", ""}]),
+        "\r\n", all), #{})
+    ) of
+        {ok, VideoName} ->
             ExtractVideo = video_conn(Video, <<>>),
             {ok, VideoName, ExtractVideo};
-        _ -> 
-            error
+        error -> error
     end.
 
 repl__mult_words(Text, Replacements) ->
@@ -173,7 +172,7 @@ status_msg(StatusCode) ->
         200 -> <<"200 OK">>;
         201 -> <<"201 Created">>;
         404 -> <<"404 Not Found">>;
-        _ -> <<"Internal Server Error">>
+        _ -> <<"500 Internal Server Error">>
     end.
 
 send_resp(Sock, Status, Header, Body) ->
