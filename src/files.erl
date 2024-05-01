@@ -1,5 +1,5 @@
 -module(files).
--export([read_page/1, is_exist_video/1, load_video/1, encode_video/1]).
+-export([read_page/1, is_exist_video/1, load_video/1, encode_video/1, download_video/2]).
 
 read_page(FileName) ->
     case file:read_file("../pages/" ++ binary_to_list(FileName) ++ ".html") of
@@ -50,3 +50,11 @@ encode_video(FileName) ->
         Output
     ]),
     os:cmd(Command).
+
+download_video(Name, Body) ->
+    {ok, File} = file:open("../videos/" ++ Name, [write]),
+    file:write(File, Body),
+    file:close(File),
+
+    encode_video(string:replace(Name, ".mp4", "")),
+    os:cmd("rm ../videos/" ++ Name).

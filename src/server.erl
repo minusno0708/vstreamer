@@ -1,7 +1,7 @@
 -module(server).
 -export([start/1]).
 
--import(files, [read_page/1, load_video/1, is_exist_video/1]).
+-import(files, [read_page/1, load_video/1, is_exist_video/1, download_video/2]).
 
 start(Port) ->
     io:format("Start streaming server on ~p~n", [Port]),
@@ -69,6 +69,16 @@ handle_server(Sock) ->
                             Header = <<"Content-Type: text/plain\r\n">>,
                             send_resp(Sock, 404, Header, <<"Not found!">>)
                     end;
+                [<<"POST">>, <<"/upload">>, _] ->
+                    case extract_video(_Body) of
+                        {ok, VideoName, ExtractVideo} ->
+                            spawn(fun() -> download_video(VideoName, ExtractVideo) end),
+                            Header = <<"Content-Type: text/plain\r\n">>,
+                            send_resp(Sock, 201, Header, <<"Upload page">>);
+                        error ->
+                            Header = <<"Content-Type: text/plain\r\n">>,
+                            send_resp(Sock, 500, Header, <<"Failed to update video">>)
+                    end;
                 _ ->
                     Header = <<"Content-Type: text/plain\r\n">>,
                     send_resp(Sock, 404, Header, <<"Not found!">>)
@@ -80,30 +90,77 @@ handle_server(Sock) ->
 read_req(Sock) ->
     case gen_tcp:recv(Sock, 0) of
         {ok, Data} -> 
-            [Header, Body] = case string:split(Data, "\r\n\r\n", all) of
-                [H, B] -> [H, B];
-                [H] -> [H, <<"">>]
-            end,
-            [StateField | HeaderField] = string:split(Header, "\r\n", all),
-            States = string:split(StateField, " ", all),
-            Headers = headers_to_map(HeaderField, #{}),
-            {ok, States, Headers, Body};
+            [HeaderSection | BodySection] = string:split(Data, "\r\n\r\n", all),
+            [StateLine | HeaderLine] = string:split(HeaderSection, "\r\n", all),
+
+            Status = string:split(StateLine, " ", all),
+            Header = headers_to_map(HeaderLine, #{}),
+            Body = body_conn(BodySection, <<>>),
+            
+            case byte_size(Body) >=  binary_to_integer(maps:get(<<"Content-Length">>, Header, <<"0">>)) of
+                true -> {ok, Status, Header, Body};
+                false -> continue_recv(Sock, Status, Header, Body)
+            end;
+        {error, closed} -> {error, closed}
+    end.
+
+continue_recv(Sock, Status, Header, PreBody) ->
+    case gen_tcp:recv(Sock, 0) of
+        {ok, Data} ->
+            Body = body_conn([Data], PreBody),
+            case byte_size(Body) >= binary_to_integer(maps:get(<<"Content-Length">>, Header, <<"0">>)) of
+                true -> {ok, Status, Header, Body};
+                false -> continue_recv(Sock, Status, Header, Body)
+            end;
         {error, closed} -> {error, closed}
     end.
 
 headers_to_map(HeaderList, HeaderMap) ->
     case HeaderList of
         [] -> HeaderMap;
-        [Header | Rest] -> 
-            [Key, Value] = string:split(Header, ": ", all),
-            headers_to_map(Rest, HeaderMap#{Key => Value})
+        [Header | Rest] ->
+            case string:split(Header, ": ", all) of
+                [Key, Value] -> 
+                    headers_to_map(Rest, HeaderMap#{Key => Value});
+                _ -> 
+                    headers_to_map(Rest, HeaderMap)
+            end
+    end.
+
+body_conn(BodySection, Body) ->
+    case BodySection of
+        [] -> Body;
+        [BodyHead] -> <<Body/binary, BodyHead/binary>>;
+        [BodyHead | BodyTail] ->
+            body_conn(BodyTail, <<Body/binary, BodyHead/binary, "\r\n\r\n">>)
+    end.
+
+extract_video(Body) ->
+    [Header, Video] = string:split(Body, "\r\n\r\n"),
+    [Delim | _ ] = string:split(Header, "\r\n", all),
+    case maps:find("filename", 
+        headers_to_map(string:split(
+        repl_mult_words(binary_to_list(Header), [{binary_to_list(Delim), ""}, {"; ", "\r\n"}, {"=", ": "}, {"\"", ""}]),
+        "\r\n", all), #{})
+    ) of
+        {ok, VideoName} ->
+            [ExtractVideo, _] = string:split(Video, <<"\r\n", Delim/binary>>),
+            {ok, VideoName, ExtractVideo};
+        error -> error
+    end.
+
+repl_mult_words(Text, Replacements) ->
+    case Replacements of
+        [] -> Text;
+        [{Old, New} | Rest] -> repl_mult_words(string:replace(Text, Old, New, all), Rest)
     end.
 
 status_msg(StatusCode) ->
     case StatusCode of
         200 -> <<"200 OK">>;
+        201 -> <<"201 Created">>;
         404 -> <<"404 Not Found">>;
-        _ -> <<"Internal Server Error">>
+        _ -> <<"500 Internal Server Error">>
     end.
 
 send_resp(Sock, Status, Header, Body) ->
