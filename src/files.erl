@@ -54,4 +54,7 @@ encode_video(FileName) ->
 download_video(Name, Body) ->
     {ok, File} = file:open("../videos/" ++ Name, [write]),
     file:write(File, Body),
-    file:close(File).
+    file:close(File),
+
+    encode_video(string:replace(Name, ".mp4", "")),
+    os:cmd("rm ../videos/" ++ Name).
