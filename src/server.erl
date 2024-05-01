@@ -137,34 +137,23 @@ body_conn(BodySection, Body) ->
     end.
 
 extract_video(Body) ->
-    [Header | Video] = string:split(Body, "\r\n\r\n", all),
+    [Header, Video] = string:split(Body, "\r\n\r\n"),
+    [Delim | _ ] = string:split(Header, "\r\n", all),
     case maps:find("filename", 
         headers_to_map(string:split(
-        repl__mult_words(binary_to_list(Header), [{"; ", "\r\n"}, {"=", ": "}, {"\"", ""}]),
+        repl_mult_words(binary_to_list(Header), [{binary_to_list(Delim), ""}, {"; ", "\r\n"}, {"=", ": "}, {"\"", ""}]),
         "\r\n", all), #{})
     ) of
         {ok, VideoName} ->
-            ExtractVideo = video_conn(Video, <<>>),
+            [ExtractVideo, _] = string:split(Video, <<"\r\n", Delim/binary>>),
             {ok, VideoName, ExtractVideo};
         error -> error
     end.
 
-repl__mult_words(Text, Replacements) ->
+repl_mult_words(Text, Replacements) ->
     case Replacements of
         [] -> Text;
-        [{Old, New} | Rest] -> repl__mult_words(string:replace(Text, Old, New, all), Rest)
-    end.
-
-video_conn(VideoSection, Video) ->
-    case VideoSection of
-        [] -> Video;
-        [VideoHead] -> 
-            LastVideoElem = string:split(VideoHead, "\r\n", all),
-            <<Video/binary, 
-            (body_conn(lists:sublist(LastVideoElem, length(LastVideoElem)-2), <<>>))/binary,
-            "\r\n">>;
-        [VideoHead | VideoTail] ->
-            video_conn(VideoTail, <<Video/binary, VideoHead/binary, "\r\n\r\n">>)
+        [{Old, New} | Rest] -> repl_mult_words(string:replace(Text, Old, New, all), Rest)
     end.
 
 status_msg(StatusCode) ->
