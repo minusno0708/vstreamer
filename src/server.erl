@@ -72,8 +72,7 @@ handle_server(Sock) ->
                 [<<"POST">>, <<"/upload">>, _] ->
                     case extract_video(_Body) of
                         {ok, VideoName, ExtractVideo} ->
-                            download_video(VideoName, ExtractVideo),
-
+                            spawn(fun() -> download_video(VideoName, ExtractVideo) end),
                             Header = <<"Content-Type: text/plain\r\n">>,
                             send_resp(Sock, 201, Header, <<"Upload page">>);
                         error ->
