@@ -61,5 +61,16 @@ download_video(Name, Body) ->
 
 get_video_list() ->
     List = filelib:wildcard("../videos/*"),
-    ListName = lists:map(fun(X) -> string:substr(X, 11, length(X) - 10) end, List),
-    ListName.
+    VideoList = get_video_list([], List),
+    VideoList.
+
+get_video_list(VideoList, FileList) ->
+    case FileList of
+        [] -> VideoList;
+        [H | T] ->
+            FileName = hd(lists:reverse(string:replace(H, "../videos/", ""))),
+            case string:str(FileName, ".") of
+                0 -> get_video_list([VideoList | FileName], T);
+                _ -> get_video_list(VideoList, T)
+            end
+    end.
