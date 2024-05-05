@@ -24,8 +24,8 @@ handle_server(Sock) ->
             io:format("Received: ~p~n", [States]),
             case States of
                 [<<"GET">>, <<"/">>, _] ->
-                    Header = <<"Content-Type: text/plain\r\n">>,
-                    send_resp(Sock, 200, Header, <<"Hello, client!">>);
+                    RedirectHeader = <<"HTTP/1.1 302 Found\r\nLocation: /page\r\n\r\n">>,
+                    gen_tcp:send(Sock, RedirectHeader);
                 [<<"GET">>, <<"/page">>, _] ->
                     {ok, File} = read_page(<<"index">>),
                     Header = <<"Content-Type: text/html\r\n">>,
