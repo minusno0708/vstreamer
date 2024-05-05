@@ -1,9 +1,15 @@
-video_streaming_server
+video-streaming-server
 =====
 
-An OTP application
+動画ストリーミングアプリケーション
 
 Build
 -----
 
     $ rebar3 compile
+
+Run
+-----
+
+    $ rebar3 shell
+    
