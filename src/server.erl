@@ -4,7 +4,7 @@
 -import(files, [read_page/1, load_video/1, is_exist_video/1, download_video/2, get_video_list/0]).
 
 start(Port) ->
-    io:format("Start streaming server on ~p~n", [Port]),
+    io:format("Start streaming server on http://localhost:~p~n", [Port]),
     case gen_tcp:listen(Port, [binary, {packet, 0}, {active, false}, {reuseaddr, true}]) of
         {ok, LSock} -> 
             loop_acceptor(LSock);
@@ -24,8 +24,8 @@ handle_server(Sock) ->
             io:format("Received: ~p~n", [States]),
             case States of
                 [<<"GET">>, <<"/">>, _] ->
-                    Header = <<"Content-Type: text/plain\r\n">>,
-                    send_resp(Sock, 200, Header, <<"Hello, client!">>);
+                    RedirectHeader = <<"HTTP/1.1 302 Found\r\nLocation: /page\r\n\r\n">>,
+                    gen_tcp:send(Sock, RedirectHeader);
                 [<<"GET">>, <<"/page">>, _] ->
                     {ok, File} = read_page(<<"index">>),
                     Header = <<"Content-Type: text/html\r\n">>,
