@@ -2,6 +2,7 @@
 -export([start/1]).
 
 -import(files, [read_page/1, load_video/1, is_exist_video/1, download_video/2, get_video_list/0]).
+-import(vstreamer_http, [serialize_http/2, serialize_http/3]).
 
 start(Port) ->
     io:format("Start streaming server on http://localhost:~p~n", [Port]),
@@ -24,8 +25,7 @@ handle_server(Sock) ->
             io:format("Received: ~p~n", [States]),
             case States of
                 [<<"GET">>, <<"/">>, _] ->
-                    RedirectHeader = <<"HTTP/1.1 302 Found\r\nLocation: /page\r\n\r\n">>,
-                    gen_tcp:send(Sock, RedirectHeader);
+                    send_resp(Sock, 302, <<"Location: /page\r\n">>);
                 [<<"GET">>, <<"/page">>, _] ->
                     {ok, File} = read_page(<<"index">>),
                     Header = <<"Content-Type: text/html\r\n">>,
@@ -160,20 +160,10 @@ repl_mult_words(Text, Replacements) ->
         [{Old, New} | Rest] -> repl_mult_words(string:replace(Text, Old, New, all), Rest)
     end.
 
-status_msg(StatusCode) ->
-    case StatusCode of
-        200 -> <<"200 OK">>;
-        201 -> <<"201 Created">>;
-        404 -> <<"404 Not Found">>;
-        _ -> <<"500 Internal Server Error">>
-    end.
+send_resp(Sock, Status, Header) ->
+    Resp = serialize_http(Status, Header),
+    gen_tcp:send(Sock, Resp).
 
 send_resp(Sock, Status, Header, Body) ->
-    Resp = <<
-        "HTTP/1.1 ", (status_msg(Status))/binary, " \r\n",
-        "Content-Length: ", (integer_to_binary(byte_size(Body)))/binary, "\r\n",
-        Header/binary,
-        "\r\n",
-        Body/binary
-    >>,
+    Resp = serialize_http(Status, Header, Body),
     gen_tcp:send(Sock, Resp).
