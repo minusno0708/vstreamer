@@ -16,4 +16,9 @@ clean:
 
 run:
 	erl -pa $(EBIN_DIR) -eval 'vstreamer_app:start().'
-	
+
+rund:
+	rm -f $(EBIN_DIR)/*.beam
+	$(ERLC) -o $(EBIN_DIR) $(SOURCES)
+	erl -pa $(EBIN_DIR) -eval 'vstreamer_app:start().'
+
