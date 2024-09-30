@@ -3,7 +3,7 @@
 -export([run/1]).
 
 -import(vstreamer_files, [read_page/1, load_video/1, is_exist_video/1, download_video/2, get_video_list/0]).
--import(vstreamer_http, [parse_http/1, serialize_http/2, serialize_http/3, conn_body/2, is_received/2]).
+-import(vstreamer_http, [parse_http/1, serialize_http/2, serialize_http/3, conn_body/2]).
 -import(vstreamer_router, [router/3]).
 
 run(Port) ->
@@ -24,7 +24,7 @@ loop_acceptor(LSock) ->
 handle_server(Sock) ->
     case read_req(Sock) of
         {ok, [Method, Path, _Version], _ReqHeader, _ReqBody} ->
-            io:format("Request: ~p ~p~n", [Method, Path]),
+            io:format("Received: ~p ~p~n", [Method, Path]),
             case router(Method, Path, _ReqBody) of
                 {Status, RespHeader, RespBody} -> 
                     send_resp(Sock, Status, RespHeader, RespBody);
@@ -38,8 +38,6 @@ handle_server(Sock) ->
 read_req(Sock) ->
     case gen_tcp:recv(Sock, 0) of
         {ok, Req} -> 
-            io:format("Received: ~p~n", [Req]),
-            
             {Status, Header, Body} = parse_http(Req),
 
             case is_received(Header, Body) of
@@ -59,6 +57,9 @@ continue_recv(Sock, Status, Header, ReceivedBody) ->
             end;
         {error, closed} -> {error, closed}
     end.
+
+is_received(Header, Body) ->
+    byte_size(Body) >= binary_to_integer(maps:get(<<"Content-Length">>, Header, <<"0">>)).     
 
 send_resp(Sock, Status, Header) ->
     Resp = serialize_http(Status, Header),

@@ -1,6 +1,6 @@
 -module(vstreamer_http).
 
--export([parse_http/1, serialize_http/2, serialize_http/3, conn_body/2, is_received/2]).
+-export([parse_http/1, serialize_http/2, serialize_http/3, conn_body/2]).
 
 status_msg(StatusCode) ->
     case StatusCode of
@@ -41,10 +41,7 @@ conn_body(BodySection, Body) ->
         [BodyHead] -> <<Body/binary, BodyHead/binary>>;
         [BodyHead | BodyTail] ->
             conn_body(BodyTail, <<Body/binary, BodyHead/binary, "\r\n\r\n">>)
-    end.
-
-is_received(Header, Body) ->
-    byte_size(Body) >= binary_to_integer(maps:get(<<"Content-Length">>, Header, <<"0">>)).       
+    end.  
 
 serialize_http(StatusCode, Header) ->
     <<
