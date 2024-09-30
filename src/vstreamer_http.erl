@@ -1,6 +1,6 @@
 -module(vstreamer_http).
 
--export([serialize_http/2, serialize_http/3]).
+-export([parse_http/1, serialize_http/2, serialize_http/3, conn_body/2, is_received/2]).
 
 status_msg(StatusCode) ->
     case StatusCode of
@@ -12,6 +12,39 @@ status_msg(StatusCode) ->
         404 -> <<"404 Not Found">>;
         _ -> <<"500 Internal Server Error">>
     end.
+
+parse_http(Req) ->
+    [HeaderSection | BodySection] = string:split(Req, "\r\n\r\n", all),
+    [StatusLine | HeaderLine] = string:split(HeaderSection, "\r\n", all),
+
+    Status = string:split(StatusLine, " ", all),
+    Header = parse_header(HeaderLine, #{}),
+    Body = conn_body(BodySection, <<>>),
+
+    {Status, Header, Body}.
+
+parse_header(HeaderList, HeaderMap) ->
+    case HeaderList of
+        [] -> HeaderMap;
+        [Header | Rest] ->
+            case string:split(Header, ": ", all) of
+                [Key, Value] -> 
+                    parse_header(Rest, HeaderMap#{Key => Value});
+                _ -> 
+                    parse_header(Rest, HeaderMap)
+            end
+    end.
+
+conn_body(BodySection, Body) ->
+    case BodySection of
+        [] -> Body;
+        [BodyHead] -> <<Body/binary, BodyHead/binary>>;
+        [BodyHead | BodyTail] ->
+            conn_body(BodyTail, <<Body/binary, BodyHead/binary, "\r\n\r\n">>)
+    end.
+
+is_received(Header, Body) ->
+    byte_size(Body) >= binary_to_integer(maps:get(<<"Content-Length">>, Header, <<"0">>)).       
 
 serialize_http(StatusCode, Header) ->
     <<
