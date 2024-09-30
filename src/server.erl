@@ -3,6 +3,7 @@
 
 -import(files, [read_page/1, load_video/1, is_exist_video/1, download_video/2, get_video_list/0]).
 -import(vstreamer_http, [serialize_http/2, serialize_http/3]).
+-import(vstreamer_router, [router/3]).
 
 start(Port) ->
     io:format("Start streaming server on http://localhost:~p~n", [Port]),
@@ -21,72 +22,13 @@ loop_acceptor(LSock) ->
     
 handle_server(Sock) ->
     case read_req(Sock) of
-        {ok, States, _Headers, _Body} ->
-            io:format("Received: ~p~n", [States]),
-            case States of
-                [<<"GET">>, <<"/">>, _] ->
-                    send_resp(Sock, 302, <<"Location: /page\r\n">>);
-                [<<"GET">>, <<"/page">>, _] ->
-                    {ok, File} = read_page(<<"index">>),
-                    Header = <<"Content-Type: text/html\r\n">>,
-                    send_resp(Sock, 200, Header, File);
-                [<<"GET">>, <<"/page/list">>, _] ->
-                    {ok, File} = read_page(<<"list">>),
-                    Header = <<"Content-Type: text/html\r\n">>,
-                    EmbedFile = re:replace(binary_to_list(File), "%%VIDEO_LIST%%", get_video_list(), [{return, list}]),
-                    send_resp(Sock, 200, Header, list_to_binary(EmbedFile));
-                [<<"GET">>, <<"/page/", PageName/binary>>, _] ->
-                    case read_page(PageName) of
-                        {ok, File} ->
-                            Header = <<"Content-Type: text/html\r\n">>,
-                            send_resp(Sock, 200, Header, File);
-                        {error, File} ->
-                            Header = <<"Content-Type: text/html\r\n">>,
-                            send_resp(Sock, 404, Header, File)
-                    end;
-                [<<"GET">>, <<"/video/", VideoName/binary>>, _] ->
-                    case is_exist_video(VideoName) of
-                        true ->
-                            {ok, File} = read_page(<<"video">>),
-                            Header = <<"Content-Type: text/html\r\n">>,
-                            EmbedFile = re:replace(binary_to_list(File), "%%VIDEO_NAME%%", binary_to_list(VideoName), [{return, list}]),
-                            send_resp(Sock, 200, Header, list_to_binary(EmbedFile));
-                        false ->
-                            {ok, File} = read_page(<<"404">>),
-                            Header = <<"Content-Type: text/html\r\n">>,
-                            send_resp(Sock, 404, Header, File)
-                    end;
-                [<<"GET">>, <<"/stream/", VideoPath/binary>>, _] ->
-                    case load_video(VideoPath) of
-                        {manifest, File} ->
-                            Header = <<
-                                "Content-Type: video/mp4\r\n",
-                                "Access-Control-Allow-Origin: *\r\n"
-                            >>,
-                            send_resp(Sock, 200, Header, File);
-                        {segment, File} ->
-                            Header = <<
-                                "Content-Type: video/mp4\r\n",
-                                "Access-Control-Allow-Origin: *\r\n"
-                            >>,
-                            send_resp(Sock, 200, Header, File);
-                        {error, _} ->
-                            Header = <<"Content-Type: text/plain\r\n">>,
-                            send_resp(Sock, 404, Header, <<"Not found!">>)
-                    end;
-                [<<"POST">>, <<"/upload">>, _] ->
-                    case extract_video(_Body) of
-                        {ok, VideoName, ExtractVideo} ->
-                            spawn(fun() -> download_video(VideoName, ExtractVideo) end),
-                            Header = <<"Content-Type: text/plain\r\n">>,
-                            send_resp(Sock, 201, Header, <<"Upload page">>);
-                        error ->
-                            Header = <<"Content-Type: text/plain\r\n">>,
-                            send_resp(Sock, 500, Header, <<"Failed to update video">>)
-                    end;
-                _ ->
-                    Header = <<"Content-Type: text/plain\r\n">>,
-                    send_resp(Sock, 404, Header, <<"Not found!">>)
+        {ok, [Method, Path, _Version], _ReqHeaders, _ReqBody} ->
+            io:format("Request: ~p ~p~n", [Method, Path]),
+            case router(Method, Path, _ReqBody) of
+                {Status, Header, File} -> 
+                    send_resp(Sock, Status, Header, File);
+                {Status, Header} ->
+                    send_resp(Sock, Status, Header)
             end,
             handle_server(Sock);
         {error, closed} -> ok
@@ -138,26 +80,6 @@ body_conn(BodySection, Body) ->
         [BodyHead] -> <<Body/binary, BodyHead/binary>>;
         [BodyHead | BodyTail] ->
             body_conn(BodyTail, <<Body/binary, BodyHead/binary, "\r\n\r\n">>)
-    end.
-
-extract_video(Body) ->
-    [Header, Video] = string:split(Body, "\r\n\r\n"),
-    [Delim | _ ] = string:split(Header, "\r\n", all),
-    case maps:find("filename", 
-        headers_to_map(string:split(
-        repl_mult_words(binary_to_list(Header), [{binary_to_list(Delim), ""}, {"; ", "\r\n"}, {"=", ": "}, {"\"", ""}]),
-        "\r\n", all), #{})
-    ) of
-        {ok, VideoName} ->
-            [ExtractVideo, _] = string:split(Video, <<"\r\n", Delim/binary>>),
-            {ok, VideoName, ExtractVideo};
-        error -> error
-    end.
-
-repl_mult_words(Text, Replacements) ->
-    case Replacements of
-        [] -> Text;
-        [{Old, New} | Rest] -> repl_mult_words(string:replace(Text, Old, New, all), Rest)
     end.
 
 send_resp(Sock, Status, Header) ->
