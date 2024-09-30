@@ -1,14 +1,15 @@
--module(main).
--export([run/0, run/1]).
+-module(vstreamer_app).
 
--import(server, [start/1]).
+-export([start/0, start/1]).
 
-run() ->
-    server:start(8080).
+-import(vstreamer_web, [run/1]).
 
-run([Port]) ->
+start() ->
+    start(8080).
+
+start(Port) ->
     try
-        server:start(list_to_integer(Port))
+        run(Port)
     catch
         error:Reason -> io:format("Error: ~p~n", [Reason])
     end.

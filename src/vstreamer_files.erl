@@ -1,4 +1,5 @@
--module(files).
+-module(vstreamer_files).
+
 -export([read_page/1, is_exist_video/1, load_video/1, encode_video/1, download_video/2, get_video_list/0]).
 
 read_page(FileName) ->

@@ -1,4 +1,5 @@
--module(client).
+-module(vstreamer_client).
+
 -export([send_msg/0]).
 
 send_msg() ->

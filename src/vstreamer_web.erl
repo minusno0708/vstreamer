@@ -1,11 +1,12 @@
--module(server).
--export([start/1]).
+-module(vstreamer_web).
 
--import(files, [read_page/1, load_video/1, is_exist_video/1, download_video/2, get_video_list/0]).
+-export([run/1]).
+
+-import(vstreamer_files, [read_page/1, load_video/1, is_exist_video/1, download_video/2, get_video_list/0]).
 -import(vstreamer_http, [serialize_http/2, serialize_http/3]).
 -import(vstreamer_router, [router/3]).
 
-start(Port) ->
+run(Port) ->
     io:format("Start streaming server on http://localhost:~p~n", [Port]),
     case gen_tcp:listen(Port, [binary, {packet, 0}, {active, false}, {reuseaddr, true}]) of
         {ok, LSock} -> 
