@@ -4,7 +4,7 @@
 
 -import(vstreamer_http, [parse_header/2, serialize_header/2]).
 -import(vstreamer_videos, [load_video/1, is_exist_video/1, download_video/2, get_video_list/0]).
--import(vstreamer_pages, [read_page/1]).
+-import(vstreamer_pages, [read_page/1, embed_data/3]).
 
 router(<<"GET">>, <<"/">>, _) ->
     {302, <<"Location: /page\r\n">>};
@@ -21,8 +21,10 @@ router(<<"GET">>, <<"/page/list">>, _) ->
     Header = serialize_header([
         {<<"Content-Type">>, <<"text/html">>}
     ], <<>>),
-    EmbedFile = re:replace(binary_to_list(File), "%%VIDEO_LIST%%", get_video_list(), [{return, list}]),
-    {200, Header, list_to_binary(EmbedFile)};
+    VideoLinks = lists:concat([
+        "<li><a href=\"/video/" ++ Video ++ "\">" ++ Video ++ "</a></li>" || Video <- get_video_list()
+    ]),
+    {200, Header, embed_data(File, "%%VIDEO_LIST%%", VideoLinks)};
 
 router(<<"GET">>, <<"/page/", PageName/binary>>, _) ->
     Header = serialize_header([

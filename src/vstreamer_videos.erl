@@ -51,29 +51,9 @@ download_video(Name, Body) ->
     encode_video(string:replace(Name, ".mp4", "")),
     os:cmd("rm videos/" ++ Name).
 
+
 get_video_list() ->
-    FileList = filelib:wildcard("videos/*"),
-    VideoList = get_video_list([], FileList),
-    VideoList.
-
-get_video_list(VideoList, FileList) ->
-    case FileList of
-        [] -> VideoList;
-        [H | T] ->
-            FileName = hd(lists:reverse(string:replace(H, "videos/", ""))),
-            case string:str(FileName, ".") of
-                0 -> get_video_list([VideoList | embed_video_link(FileName)], T);
-                _ -> get_video_list(VideoList, T)
-            end
-    end.
-
-embed_video_link(VideoName) ->
-    lists:concat([
-        "<li>",
-        "<a href=\"/video/",
-        VideoName,
-        "\">",
-        VideoName,
-        "</a>",
-        "</li>"
-    ]).
+    [hd(lists:reverse(string:replace(Path, "videos/", ""))) || 
+        Path <- filelib:wildcard("videos/*"), 
+        filelib:is_dir(Path)
+    ].
