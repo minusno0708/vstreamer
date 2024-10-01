@@ -3,60 +3,69 @@
 -export([router/3]).
 
 -import(vstreamer_files, [read_page/1, load_video/1, is_exist_video/1, download_video/2, get_video_list/0]).
+-import(vstreamer_http, [serialize_header/2]).
 
 router(<<"GET">>, <<"/">>, _) ->
     {302, <<"Location: /page\r\n">>};
 
 router(<<"GET">>, <<"/page">>, _) ->
     {ok, File} = read_page(<<"index">>),
-    Header = <<"Content-Type: text/html\r\n">>,
+    Header = serialize_header([
+        {<<"Content-Type">>, <<"text/html">>}
+    ], <<>>),
     {200, Header, File};
 
 router(<<"GET">>, <<"/page/list">>, _) ->
     {ok, File} = read_page(<<"list">>),
-    Header = <<"Content-Type: text/html\r\n">>,
+    Header = serialize_header([
+        {<<"Content-Type">>, <<"text/html">>}
+    ], <<>>),
     EmbedFile = re:replace(binary_to_list(File), "%%VIDEO_LIST%%", get_video_list(), [{return, list}]),
     {200, Header, list_to_binary(EmbedFile)};
 
 router(<<"GET">>, <<"/page/", PageName/binary>>, _) ->
+    Header = serialize_header([
+        {<<"Content-Type">>, <<"text/html">>}
+    ], <<>>),
     case read_page(PageName) of
         {ok, File} ->
-            Header = <<"Content-Type: text/html\r\n">>,
             {200, Header, File};
         {error, File} ->
-            Header = <<"Content-Type: text/html\r\n">>,
             {404, Header, File}
     end;
 
 router(<<"GET">>, <<"/video/", VideoName/binary>>, _) ->
+    Header = serialize_header([
+        {<<"Content-Type">>, <<"text/html">>}
+    ], <<>>),
     case is_exist_video(VideoName) of
         true ->
             {ok, File} = read_page(<<"video">>),
-            Header = <<"Content-Type: text/html\r\n">>,
             EmbedFile = re:replace(binary_to_list(File), "%%VIDEO_NAME%%", binary_to_list(VideoName), [{return, list}]),
             {200, Header, list_to_binary(EmbedFile)};
         false ->
             {ok, File} = read_page(<<"404">>),
-            Header = <<"Content-Type: text/html\r\n">>,
             {404, Header, File}
     end;
 
 router(<<"GET">>, <<"/stream/", VideoPath/binary>>, _) ->
     case load_video(VideoPath) of
         {manifest, File} ->
-            Header = <<
-                "Content-Type: video/mp4\r\n",
-                "Access-Control-Allow-Origin: *\r\n"
-            >>,
+            Header = serialize_header([
+                {<<"Content-Type">>, <<"video/mp4">>},
+                {<<"Access-Control-Allow-Origin">>, <<"*">>}
+            ], <<>>),
             {200, Header, File};
         {segment, File} ->
-            Header = <<
-                "Content-Type: video/mp4\r\n",
-                "Access-Control-Allow-Origin: *\r\n"
-            >>,
+            Header = serialize_header([
+                {<<"Content-Type">>, <<"video/mp4">>},
+                {<<"Access-Control-Allow-Origin">>, <<"*">>}
+            ], <<>>),
             {200, Header, File};
         {error, _} ->
-            Header = <<"Content-Type: text/plain\r\n">>,
+            Header = serialize_header([
+                {<<"Content-Type">>, <<"text/plain">>}
+            ], <<>>),
             {404, Header, <<"Not found!">>}
     end;
 
@@ -64,15 +73,21 @@ router(<<"POST">>, <<"/upload">>, Body) ->
     case extract_video(Body) of
         {ok, VideoName, ExtractVideo} ->
             spawn(fun() -> download_video(VideoName, ExtractVideo) end),
-            Header = <<"Content-Type: text/plain\r\n">>,
+            Header = serialize_header([
+                {<<"Content-Type">>, <<"text/plain">>}
+            ], <<>>),
             {201, Header, <<"Upload page">>};
         error ->
-            Header = <<"Content-Type: text/plain\r\n">>,
+            Header = serialize_header([
+                {<<"Content-Type">>, <<"text/plain">>}
+            ], <<>>),
             {500, Header, <<"Failed to update video">>}
     end;
 
 router(_, _, _) ->
-    Header = <<"Content-Type: text/plain\r\n">>,
+    Header = serialize_header([
+        {<<"Content-Type">>, <<"text/plain">>}
+    ], <<>>),
     {404, Header, <<"Not found!">>}.
 
 extract_video(Body) ->

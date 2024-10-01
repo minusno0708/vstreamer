@@ -1,6 +1,6 @@
 -module(vstreamer_http).
 
--export([parse_http/1, serialize_http/2, serialize_http/3, conn_body/2]).
+-export([parse_http/1, serialize_http/2, serialize_http/3, conn_body/2, serialize_header/2]).
 
 status_msg(StatusCode) ->
     case StatusCode of
@@ -58,4 +58,13 @@ serialize_http(StatusCode, Header, Body) ->
         "\r\n",
         Body/binary
     >>.
+
+serialize_header(HeaderList, HeaderConn) ->
+    case HeaderList of
+        [{Key, Value} | Rest] ->
+            serialize_header(Rest, <<HeaderConn/binary, Key/binary, ": ", Value/binary, "\r\n">>);
+        [] ->
+            HeaderConn
+    end.
+
 
