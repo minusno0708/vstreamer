@@ -22,22 +22,11 @@ router(<<"GET">>, <<"/page/list">>, _) ->
         {<<"Content-Type">>, <<"text/html">>}
     ], <<>>),
     VideoLinks = lists:concat([
-        "<li><a href=\"/video/" ++ Video ++ "\">" ++ Video ++ "</a></li>" || Video <- get_video_list()
+        "<li><a href=\"/page/video/" ++ Video ++ "\">" ++ Video ++ "</a></li>" || Video <- get_video_list()
     ]),
     {200, Header, embed_data(File, "%%VIDEO_LIST%%", VideoLinks)};
 
-router(<<"GET">>, <<"/page/", PageName/binary>>, _) ->
-    Header = serialize_header([
-        {<<"Content-Type">>, <<"text/html">>}
-    ], <<>>),
-    case read_page(PageName) of
-        {ok, File} ->
-            {200, Header, File};
-        {error, File} ->
-            {404, Header, File}
-    end;
-
-router(<<"GET">>, <<"/video/", VideoName/binary>>, _) ->
+router(<<"GET">>, <<"/page/video/", VideoName/binary>>, _) ->
     Header = serialize_header([
         {<<"Content-Type">>, <<"text/html">>}
     ], <<>>),
@@ -47,6 +36,17 @@ router(<<"GET">>, <<"/video/", VideoName/binary>>, _) ->
             {200, Header, embed_data(File, "%%VIDEO_NAME%%", binary_to_list(VideoName))};
         false ->
             {ok, File} = read_page(<<"404">>),
+            {404, Header, File}
+    end;
+
+router(<<"GET">>, <<"/page/", PageName/binary>>, _) ->
+    Header = serialize_header([
+        {<<"Content-Type">>, <<"text/html">>}
+    ], <<>>),
+    case read_page(PageName) of
+        {ok, File} ->
+            {200, Header, File};
+        {error, File} ->
             {404, Header, File}
     end;
 
