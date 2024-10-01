@@ -1,15 +1,6 @@
--module(vstreamer_files).
+-module(vstreamer_videos).
 
--export([read_page/1, is_exist_video/1, load_video/1, encode_video/1, download_video/2, get_video_list/0]).
-
-read_page(FileName) ->
-    case file:read_file("pages/" ++ binary_to_list(FileName) ++ ".html") of
-        {ok, File} -> 
-            {ok, File};
-        {error, enoent} -> 
-            {ok, File} = file:read_file("pages/404.html"),
-            {error, File}
-    end.
+-export([is_exist_video/1, load_video/1, encode_video/1, download_video/2, get_video_list/0]).
 
 is_exist_video(VideoName) ->
     case filelib:is_dir("videos/" ++ binary_to_list(VideoName)) of

@@ -2,8 +2,9 @@
 
 -export([router/3]).
 
--import(vstreamer_files, [read_page/1, load_video/1, is_exist_video/1, download_video/2, get_video_list/0]).
 -import(vstreamer_http, [parse_header/2, serialize_header/2]).
+-import(vstreamer_videos, [load_video/1, is_exist_video/1, download_video/2, get_video_list/0]).
+-import(vstreamer_pages, [read_page/1]).
 
 router(<<"GET">>, <<"/">>, _) ->
     {302, <<"Location: /page\r\n">>};
