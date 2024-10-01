@@ -51,7 +51,6 @@ download_video(Name, Body) ->
     encode_video(string:replace(Name, ".mp4", "")),
     os:cmd("rm videos/" ++ Name).
 
-
 get_video_list() ->
     [hd(lists:reverse(string:replace(Path, "videos/", ""))) || 
         Path <- filelib:wildcard("videos/*"), 
