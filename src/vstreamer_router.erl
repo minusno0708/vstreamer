@@ -44,8 +44,7 @@ router(<<"GET">>, <<"/video/", VideoName/binary>>, _) ->
     case is_exist_video(VideoName) of
         true ->
             {ok, File} = read_page(<<"video">>),
-            EmbedFile = re:replace(binary_to_list(File), "%%VIDEO_NAME%%", binary_to_list(VideoName), [{return, list}]),
-            {200, Header, list_to_binary(EmbedFile)};
+            {200, Header, embed_data(File, "%%VIDEO_NAME%%", binary_to_list(VideoName))};
         false ->
             {ok, File} = read_page(<<"404">>),
             {404, Header, File}
