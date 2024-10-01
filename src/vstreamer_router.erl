@@ -3,7 +3,7 @@
 -export([router/3]).
 
 -import(vstreamer_files, [read_page/1, load_video/1, is_exist_video/1, download_video/2, get_video_list/0]).
--import(vstreamer_http, [serialize_header/2]).
+-import(vstreamer_http, [parse_header/2, serialize_header/2]).
 
 router(<<"GET">>, <<"/">>, _) ->
     {302, <<"Location: /page\r\n">>};
@@ -94,7 +94,7 @@ extract_video(Body) ->
     [Header, Video] = string:split(Body, "\r\n\r\n"),
     [Delim | _ ] = string:split(Header, "\r\n", all),
     case maps:find("filename", 
-        headers_to_map(string:split(
+        parse_header(string:split(
         repl_mult_words(binary_to_list(Header), [{binary_to_list(Delim), ""}, {"; ", "\r\n"}, {"=", ": "}, {"\"", ""}]),
         "\r\n", all), #{})
     ) of
@@ -102,18 +102,6 @@ extract_video(Body) ->
             [ExtractVideo, _] = string:split(Video, <<"\r\n", Delim/binary>>),
             {ok, VideoName, ExtractVideo};
         error -> error
-    end.
-
-headers_to_map(HeaderList, HeaderMap) ->
-    case HeaderList of
-        [] -> HeaderMap;
-        [Header | Rest] ->
-            case string:split(Header, ": ", all) of
-                [Key, Value] -> 
-                    headers_to_map(Rest, HeaderMap#{Key => Value});
-                _ -> 
-                    headers_to_map(Rest, HeaderMap)
-            end
     end.
 
 repl_mult_words(Text, Replacements) ->
