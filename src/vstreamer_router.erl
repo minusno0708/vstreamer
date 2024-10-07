@@ -2,7 +2,7 @@
 
 -export([router/3]).
 
--import(vstreamer_http, [serialize_header/2]).
+-import(vstreamer_http, [serialize_header/1]).
 -import(vstreamer_handler, [page_handler/1, stream_handler/1, upload_handler/1]).
 
 router(<<"GET">>, <<"/">>, _) ->
@@ -23,5 +23,5 @@ router(<<"POST">>, <<"/upload">>, Body) ->
 router(_, _, _) ->
     Header = serialize_header([
         {<<"Content-Type">>, <<"text/plain">>}
-    ], <<>>),
-    {404, Header, <<"Not found!">>}.
+    ]),
+    {404, Header, <<"Not Found">>}.

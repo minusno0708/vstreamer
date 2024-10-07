@@ -1,15 +1,19 @@
 -module(vstreamer_http).
 
--export([parse_http/1, parse_header/2, conn_body/2, serialize_http/2, serialize_http/3, serialize_header/2]).
+-export([parse_http/1, parse_header/2, conn_body/2, serialize_http/2, serialize_http/3, serialize_header/1]).
 
 status_msg(StatusCode) ->
     case StatusCode of
         200 -> <<"200 OK">>;
         201 -> <<"201 Created">>;
         204 -> <<"204 No Content">>;
+
         302 -> <<"302 Found">>;
+
         400 -> <<"400 Bad Request">>;
         404 -> <<"404 Not Found">>;
+        405 -> <<"405 Method Not Allowed">>;
+
         _ -> <<"500 Internal Server Error">>
     end.
 
@@ -58,6 +62,9 @@ serialize_http(StatusCode, Header, Body) ->
         "\r\n",
         Body/binary
     >>.
+
+serialize_header(HeaderList) ->
+    serialize_header(HeaderList, <<>>).
 
 serialize_header(HeaderList, HeaderConn) ->
     case HeaderList of
