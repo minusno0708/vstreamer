@@ -15,4 +15,10 @@ clean:
 	rm -f $(EBIN_DIR)/*.beam
 
 run:
-	erl -pa $(EBIN_DIR) -eval 'main:run().'
+	erl -pa $(EBIN_DIR) -eval 'vstreamer_app:start().'
+
+rund:
+	rm -f $(EBIN_DIR)/*.beam
+	$(ERLC) -o $(EBIN_DIR) $(SOURCES)
+	erl -pa $(EBIN_DIR) -eval 'vstreamer_app:start().'
+
