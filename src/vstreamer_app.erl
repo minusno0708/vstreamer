@@ -10,7 +10,7 @@
 -export([start/2, stop/1]).
 
 start(_StartType, _StartArgs) ->
-    vstreamer_web:run(8080),
+    vstreamer_server:run(8080),
     vstreamer_sup:start_link().
 
 stop(_State) ->

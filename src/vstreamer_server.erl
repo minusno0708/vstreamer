@@ -1,4 +1,4 @@
--module(vstreamer_web).
+-module(vstreamer_server).
 
 -export([run/1]).
 
