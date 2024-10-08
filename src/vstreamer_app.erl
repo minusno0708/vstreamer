@@ -1,15 +1,19 @@
+%%%-------------------------------------------------------------------
+%% @doc vstreamer public API
+%% @end
+%%%-------------------------------------------------------------------
+
 -module(vstreamer_app).
 
--export([start/0, start/1]).
+-behaviour(application).
 
--import(vstreamer_web, [run/1]).
+-export([start/2, stop/1]).
 
-start() ->
-    start(8080).
+start(_StartType, _StartArgs) ->
+    vstreamer_server:run(8080),
+    vstreamer_sup:start_link().
 
-start(Port) ->
-    try
-        run(Port)
-    catch
-        error:Reason -> io:format("Error: ~p~n", [Reason])
-    end.
+stop(_State) ->
+    ok.
+
+%% internal functions
