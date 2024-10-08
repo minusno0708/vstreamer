@@ -1,14 +1,9 @@
-video-streaming-server
+vstreamer
 =====
 
-動画ストリーミングサーバー
+動画配信アプリケーション
 
-Compile
+Build
 -----
 
-    $ make
-
-Run
------
-
-    $ make run
+    $ rebar3 compile
