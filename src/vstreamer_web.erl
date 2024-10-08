@@ -2,9 +2,6 @@
 
 -export([run/1]).
 
--import(vstreamer_http, [parse_http/1, serialize_http/2, serialize_http/3, conn_body/2]).
--import(vstreamer_router, [router/3]).
-
 run(Port) ->
     io:format("Start streaming server on http://localhost:~p~n", [Port]),
     case gen_tcp:listen(Port, [binary, {packet, 0}, {active, false}, {reuseaddr, true}]) of
@@ -24,7 +21,7 @@ handle_server(Sock) ->
     case read_req(Sock) of
         {ok, [Method, Path, _Version], _ReqHeader, _ReqBody} ->
             io:format("Received: ~p ~p~n", [Method, Path]),
-            case router(Method, Path, _ReqBody) of
+            case vstreamer_router:router(Method, Path, _ReqBody) of
                 {Status, RespHeader, RespBody} -> 
                     send_resp(Sock, Status, RespHeader, RespBody);
                 {Status, RespHeader} ->
@@ -37,7 +34,7 @@ handle_server(Sock) ->
 read_req(Sock) ->
     case gen_tcp:recv(Sock, 0) of
         {ok, Req} -> 
-            {Status, Header, Body} = parse_http(Req),
+            {Status, Header, Body} = vstreamer_http:parse_http(Req),
 
             case is_received(Header, Body) of
                 true -> {ok, Status, Header, Body};
@@ -49,7 +46,7 @@ read_req(Sock) ->
 continue_recv(Sock, Status, Header, ReceivedBody) ->
     case gen_tcp:recv(Sock, 0) of
         {ok, Req} ->
-            Body = conn_body([Req], ReceivedBody),
+            Body = vstreamer_http:conn_body([Req], ReceivedBody),
             case is_received(Header, Body) of
                 true -> {ok, Status, Header, Body};
                 false -> continue_recv(Sock, Status, Header, Body)
@@ -61,9 +58,9 @@ is_received(Header, Body) ->
     byte_size(Body) >= binary_to_integer(maps:get(<<"Content-Length">>, Header, <<"0">>)).     
 
 send_resp(Sock, Status, Header) ->
-    Resp = serialize_http(Status, Header),
+    Resp = vstreamer_http:serialize_http(Status, Header),
     gen_tcp:send(Sock, Resp).
 
 send_resp(Sock, Status, Header, Body) ->
-    Resp = serialize_http(Status, Header, Body),
+    Resp = vstreamer_http:serialize_http(Status, Header, Body),
     gen_tcp:send(Sock, Resp).
