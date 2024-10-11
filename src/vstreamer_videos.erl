@@ -30,7 +30,7 @@ encode_video(FileName) ->
     BitConfig = [
         {row, "1M -s 720x480"},
         {medium, "2M -s 1280x720"},
-        {high, "5M -s 1920x1080"}   
+        {high, "5M -s 1920x1080"}
     ],
 
     Command = lists:concat([
@@ -52,7 +52,7 @@ download_video(Name, Body) ->
     os:cmd("rm videos/" ++ Name).
 
 get_video_list() ->
-    [hd(lists:reverse(string:replace(Path, "videos/", ""))) || 
-        Path <- filelib:wildcard("videos/*"), 
+    [hd(lists:reverse(string:replace(Path, "videos/", ""))) ||
+        Path <- filelib:wildcard("videos/*"),
         filelib:is_dir(Path)
     ].
