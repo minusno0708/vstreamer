@@ -1,6 +1,12 @@
 -module(vstreamer_http).
 
--export([parse_http/1, parse_header/2, conn_body/2, serialize_http/2, serialize_http/3, serialize_header/1]).
+-export([
+    parse_http/1,
+    parse_header/2,
+    conn_body/2,
+    serialize_http/2,
+    serialize_http/3,
+    serialize_header/1]).
 
 status_msg(StatusCode) ->
     case StatusCode of
