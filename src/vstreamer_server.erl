@@ -3,12 +3,12 @@
 -export([run/1]).
 
 run(Port) ->
-    io:format("Start streaming server on http://localhost:~p~n", [Port]),
+    logger:info("Start streaming server on http://localhost:~p~n", [Port]),
     case gen_tcp:listen(Port, [binary, {packet, 0}, {active, false}, {reuseaddr, true}]) of
         {ok, LSock} ->
             loop_acceptor(LSock);
         {error, Reason} ->
-            io:format("Error: ~p~n", [Reason]),
+            logger:error("Error: ~p~n", [Reason]),
             ok
     end.
 
@@ -20,7 +20,7 @@ loop_acceptor(LSock) ->
 handle_server(Sock) ->
     case read_req(Sock) of
         {ok, [Method, Path, _Version], _ReqHeader, ReqBody} ->
-            io:format("Received: ~p ~p~n", [Method, Path]),
+            logger:info("Received: ~p ~p~n", [Method, Path]),
             case vstreamer_router:router(Method, Path, ReqBody) of
                 {Status, RespHeader, RespBody} ->
                     send_resp(Sock, Status, RespHeader, RespBody);
