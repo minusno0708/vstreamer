@@ -4,9 +4,7 @@
 
 page_handler(<<"list">>) ->
     {ok, File} = vstreamer_pages:read_page(<<"list">>),
-    Header = vstreamer_http:serialize_header([
-        {<<"Content-Type">>, <<"text/html">>}
-    ]),
+    Header = html_content_header(),
     VideoLinks = lists:concat([
         "<li><a href=\"/page/video/" ++ Video ++ "\">" ++
         Video ++
@@ -16,9 +14,7 @@ page_handler(<<"list">>) ->
     {200, Header, vstreamer_pages:embed_data(File, "%%VIDEO_LIST%%", VideoLinks)};
 
 page_handler(<<"video/", VideoName/binary>>) ->
-    Header = vstreamer_http:serialize_header([
-        {<<"Content-Type">>, <<"text/html">>}
-    ]),
+    Header = html_content_header(),
     case vstreamer_videos:is_exist_video(VideoName) of
         true ->
             {ok, File} = vstreamer_pages:read_page(<<"video">>),
@@ -30,9 +26,7 @@ page_handler(<<"video/", VideoName/binary>>) ->
     end;
 
 page_handler(Page) ->
-    Header = vstreamer_http:serialize_header([
-        {<<"Content-Type">>, <<"text/html">>}
-    ]),
+    Header = html_content_header(),
     case vstreamer_pages:read_page(Page) of
         {ok, File} ->
             {200, Header, File};
@@ -43,21 +37,13 @@ page_handler(Page) ->
 stream_handler(VideoPath) ->
     case vstreamer_videos:load_video(VideoPath) of
         {manifest, File} ->
-            Header = vstreamer_http:serialize_header([
-                {<<"Content-Type">>, <<"video/mp4">>},
-                {<<"Access-Control-Allow-Origin">>, <<"*">>}
-            ]),
+            Header = mp4_content_header(),
             {200, Header, File};
         {segment, File} ->
-            Header = vstreamer_http:serialize_header([
-                {<<"Content-Type">>, <<"video/mp4">>},
-                {<<"Access-Control-Allow-Origin">>, <<"*">>}
-            ]),
+            Header = mp4_content_header(),
             {200, Header, File};
         {error, _} ->
-            Header = vstreamer_http:serialize_header([
-                {<<"Content-Type">>, <<"text/plain">>}
-            ]),
+            Header = plain_content_header(),
             {404, Header, <<"Not found!">>}
     end.
 
@@ -65,16 +51,25 @@ upload_handler(Body) ->
     case extract_video(Body) of
         {ok, VideoName, ExtractVideo} ->
             spawn(fun() -> vstreamer_videos:download_video(VideoName, ExtractVideo) end),
-            Header = vstreamer_http:serialize_header([
-                {<<"Content-Type">>, <<"text/plain">>}
-            ]),
+            Header = plain_content_header(),
             {201, Header, <<"Upload page">>};
         error ->
-            Header = vstreamer_http:serialize_header([
-                {<<"Content-Type">>, <<"text/plain">>}
-            ]),
+            Header = plain_content_header(),
             {500, Header, <<"Failed to update video">>}
     end.
+
+plain_content_header() -> vstreamer_http:serialize_header([
+    {<<"Content-Type">>, <<"text/plain">>}
+]).
+
+html_content_header() -> vstreamer_http:serialize_header([
+    {<<"Content-Type">>, <<"text/html">>}
+]).
+
+mp4_content_header() -> vstreamer_http:serialize_header([
+    {<<"Content-Type">>, <<"video/mp4">>},
+    {<<"Access-Control-Allow-Origin">>, <<"*">>}
+]).
 
 extract_video(Body) ->
     [Header, Video] = string:split(Body, "\r\n\r\n"),
