@@ -3,36 +3,39 @@
 -export([encode_manager/2]).
 
 encode_manager(Name, Body) ->
-    save_raw_video(Name, Body),
-    encode(string:replace(Name, ".mp4", "")),
-    remove_raw_video("videos/" ++ Name).
+    VideoID = vstreamer_videos:register_video(string:replace(Name, ".mp4", "")),
+    save_raw_video(VideoID, Body),
+    encode(VideoID),
+    remove_raw_video(VideoID).
 
-save_raw_video(Name, Body) ->
-    {ok, File} = file:open("videos/" ++ Name, [write]),
+raw_video_path(VideoID) ->
+    <<"videos/", VideoID/binary, ".mp4">>.
+
+save_raw_video(VideoID, Body) ->
+    {ok, File} = file:open(raw_video_path(VideoID), [write]),
     file:write(File, Body),
     file:close(File).
 
-remove_raw_video(Path) ->
-    os:cmd("rm " ++ Path).
+remove_raw_video(VideoID) ->
+    os:cmd(binary_to_list(<<"rm ", (raw_video_path(VideoID))/binary>>)).
 
-encode(FileName) ->
-    os:cmd("mkdir -p videos/" ++ FileName),
+encode(VideoID) ->
+    os:cmd(binary_to_list(<<"mkdir -p videos/", VideoID/binary>>)),
 
-    Path = "videos/" ++ FileName ++ ".mp4",
-    Output = "videos/" ++ FileName ++ "/manifest.mpd",
+    Path = raw_video_path(VideoID),
+    Output = <<"videos/", VideoID/binary, "/manifest.mpd">>,
 
     BitConfig = [
-        {row, "1M -s 720x480"},
-        {medium, "2M -s 1280x720"},
-        {high, "5M -s 1920x1080"}
+        {row, <<"1M -s 720x480">>},
+        {medium, <<"2M -s 1280x720">>},
+        {high, <<"5M -s 1920x1080">>}
     ],
 
-    Command = lists:concat([
+    os:cmd(binary_to_list(<<
         "ffmpeg -i ",
-        Path,
+        Path/binary,
         " -c:v libx264 -b:v ",
-        proplists:get_value(medium, BitConfig),
+        (proplists:get_value(medium, BitConfig))/binary,
         " -keyint_min 150 -g 150 -profile:v high -preset medium -c:a aac -ac 2 -b:a 128k -f dash ",
-        Output
-    ]),
-    os:cmd(Command).
+        Output/binary
+    >>)).
