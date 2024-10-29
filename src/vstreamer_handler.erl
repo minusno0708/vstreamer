@@ -50,7 +50,7 @@ stream_handler(VideoPath) ->
 upload_handler(Body) ->
     case extract_video(Body) of
         {ok, VideoName, ExtractVideo} ->
-            spawn(fun() -> vstreamer_videos:download_video(VideoName, ExtractVideo) end),
+            spawn(fun() -> vstreamer_enc_manager:encode_manager(VideoName, ExtractVideo) end),
             Header = plain_content_header(),
             {201, Header, <<"Upload page">>};
         error ->
