@@ -6,9 +6,28 @@
 </head>
 <body>
     <h1>Videos List</h1>
-    <ul>
-        %%VIDEO_LIST%%
-    </ul>
+    <ul id="videoList"></ul>
     <a href="/page">Home</a>
+
+    <script>
+        async function fetchVideos() {
+            const response = await fetch('/videos');
+
+            if (!response.ok) {
+                throw new Error('Failed to fetch videos');
+            }
+
+            const data = await response.json();
+            const list = document.getElementById('videoList');
+
+            data.videos.forEach(video => {
+                const item = document.createElement('li');
+                item.innerHTML = `<a href="/page/video/${video.id}">${video.id}</a>`;
+                list.appendChild(item);
+            });
+        }
+
+        fetchVideos();
+    </script>
 </body>
 </html>
