@@ -22,7 +22,7 @@
 
             data.videos.forEach(video => {
                 const item = document.createElement('li');
-                item.innerHTML = `<a href="/page/video/${video.id}">${video.id}</a>`;
+                item.innerHTML = `<a href="/page/video/${video.id}">${video.title}</a>`;
                 list.appendChild(item);
             });
         }
