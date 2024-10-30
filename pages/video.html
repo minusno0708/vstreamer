@@ -7,15 +7,42 @@
 </head>
 <body>
     <h1>Video Streaming Server</h1>
+
+    <p id="videoTitle"></p>
+
     <video id="videoPlayer" width="640" controls></video>
-    <script>
-        (function(){
-            var url = "http://localhost:8080/stream/%%VIDEO_NAME%%/manifest.mpd";
-            var player = dashjs.MediaPlayer().create();
-            player.initialize(document.querySelector("#videoPlayer"), url, true);
-        })();
-    </script>
+    
     <p><a href="/page/list">List</a></p>
     <p><a href="/page">Home</a></p>
+
+    <script>
+        function getVideoID() {
+            const url = window.location.href;
+            const parts = url.split('/');
+            return parts[parts.length - 1];
+        }
+
+        async function getVideoTitle() {
+            const response = await fetch(`/videos/${videoID}`);
+
+            if (!response.ok) {
+                throw new Error('Failed to fetch video info');
+            }
+
+            const data = await response.json();
+            const title = data.videos.title;
+            document.getElementById('videoTitle').innerText = title;
+        }
+
+        function playVideo() {
+            const url = `http://localhost:8080/stream/${videoID}/manifest.mpd`;
+            const player = dashjs.MediaPlayer().create();
+            player.initialize(document.querySelector("#videoPlayer"), url, true);
+        }
+
+        const videoID = getVideoID();
+        getVideoTitle();
+        playVideo();
+    </script>
 </body>
 </html>

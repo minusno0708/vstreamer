@@ -1,25 +1,13 @@
 -module(vstreamer_handler).
 
--export([page_handler/1, stream_handler/1, upload_handler/1]).
-
-page_handler(<<"list">>) ->
-    {ok, File} = vstreamer_pages:read_page(<<"list">>),
-    Header = html_content_header(),
-    VideoLinks = lists:concat([
-        "<li><a href=\"/page/video/" ++ Video ++ "\">" ++
-        Video ++
-        "</a></li>"
-        || Video <- vstreamer_videos:get_video_list()]
-    ),
-    {200, Header, vstreamer_pages:embed_data(File, "%%VIDEO_LIST%%", VideoLinks)};
+-export([page_handler/1, stream_handler/1, video_handler/0, video_handler/1, upload_handler/1]).
 
 page_handler(<<"video/", VideoName/binary>>) ->
     Header = html_content_header(),
     case vstreamer_videos:is_exist_video(VideoName) of
         true ->
             {ok, File} = vstreamer_pages:read_page(<<"video">>),
-            {200, Header,
-                vstreamer_pages:embed_data(File, "%%VIDEO_NAME%%", binary_to_list(VideoName))};
+            {200, Header, File};
         false ->
             {ok, File} = vstreamer_pages:read_page(<<"404">>),
             {404, Header, File}
@@ -47,10 +35,25 @@ stream_handler(VideoPath) ->
             {404, Header, <<"Not found!">>}
     end.
 
+video_handler() ->
+    VideoList = vstreamer_videos:get_video_list(),
+    Header = json_content_header(),
+    {200, Header, jsone:encode(#{<<"videos">> => VideoList})}.
+
+video_handler(VideoID) ->
+    case vstreamer_videos:get_video(VideoID) of
+        {ok, Video} ->
+            Header = json_content_header(),
+            {200, Header, jsone:encode(#{<<"videos">> => Video})};
+        {error, _} ->
+            Header = plain_content_header(),
+            {404, Header, <<"Not found!">>}
+    end.
+
 upload_handler(Body) ->
     case extract_video(Body) of
         {ok, VideoName, ExtractVideo} ->
-            spawn(fun() -> vstreamer_videos:download_video(VideoName, ExtractVideo) end),
+            spawn(fun() -> vstreamer_enc_manager:encode_manager(VideoName, ExtractVideo) end),
             Header = plain_content_header(),
             {201, Header, <<"Upload page">>};
         error ->
@@ -60,6 +63,10 @@ upload_handler(Body) ->
 
 plain_content_header() -> vstreamer_http:serialize_header([
     {<<"Content-Type">>, <<"text/plain">>}
+]).
+
+json_content_header() -> vstreamer_http:serialize_header([
+    {<<"Content-Type">>, <<"application/json">>}
 ]).
 
 html_content_header() -> vstreamer_http:serialize_header([
