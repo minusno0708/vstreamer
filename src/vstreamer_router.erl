@@ -14,6 +14,9 @@ router(<<"GET">>, <<"/page/", PageName/binary>>, _) ->
 router(<<"GET">>, <<"/stream/", VideoPath/binary>>, _) ->
     vstreamer_handler:stream_handler(VideoPath);
 
+router(<<"GET">>, <<"/videos">>, _) ->
+    vstreamer_handler:video_handler();
+
 router(<<"POST">>, <<"/upload">>, Body) ->
     vstreamer_handler:upload_handler(Body);
 

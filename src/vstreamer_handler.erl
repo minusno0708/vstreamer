@@ -1,6 +1,6 @@
 -module(vstreamer_handler).
 
--export([page_handler/1, stream_handler/1, upload_handler/1]).
+-export([page_handler/1, stream_handler/1, video_handler/0, upload_handler/1]).
 
 page_handler(<<"list">>) ->
     {ok, File} = vstreamer_pages:read_page(<<"list">>),
@@ -47,6 +47,12 @@ stream_handler(VideoPath) ->
             {404, Header, <<"Not found!">>}
     end.
 
+video_handler() ->
+    VideoList = vstreamer_videos:get_video_list(),
+    Header = json_content_header(),
+    Resp = jsone:encode(#{<<"videos">> => [#{<<"id">> => list_to_binary(Video)} || Video <- VideoList]}),
+    {200, Header, Resp}.
+
 upload_handler(Body) ->
     case extract_video(Body) of
         {ok, VideoName, ExtractVideo} ->
@@ -60,6 +66,10 @@ upload_handler(Body) ->
 
 plain_content_header() -> vstreamer_http:serialize_header([
     {<<"Content-Type">>, <<"text/plain">>}
+]).
+
+json_content_header() -> vstreamer_http:serialize_header([
+    {<<"Content-Type">>, <<"application/json">>}
 ]).
 
 html_content_header() -> vstreamer_http:serialize_header([
