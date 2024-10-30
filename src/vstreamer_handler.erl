@@ -2,24 +2,12 @@
 
 -export([page_handler/1, stream_handler/1, video_handler/0, upload_handler/1]).
 
-page_handler(<<"list">>) ->
-    {ok, File} = vstreamer_pages:read_page(<<"list">>),
-    Header = html_content_header(),
-    VideoLinks = lists:concat([
-        "<li><a href=\"/page/video/" ++ Video ++ "\">" ++
-        Video ++
-        "</a></li>"
-        || Video <- vstreamer_videos:get_video_list()]
-    ),
-    {200, Header, vstreamer_pages:embed_data(File, "%%VIDEO_LIST%%", VideoLinks)};
-
 page_handler(<<"video/", VideoName/binary>>) ->
     Header = html_content_header(),
     case vstreamer_videos:is_exist_video(VideoName) of
         true ->
             {ok, File} = vstreamer_pages:read_page(<<"video">>),
-            {200, Header,
-                vstreamer_pages:embed_data(File, "%%VIDEO_NAME%%", binary_to_list(VideoName))};
+            {200, Header, File};
         false ->
             {ok, File} = vstreamer_pages:read_page(<<"404">>),
             {404, Header, File}
