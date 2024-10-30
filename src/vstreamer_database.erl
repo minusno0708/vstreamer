@@ -1,18 +1,18 @@
 -module(vstreamer_database).
 
 -export([
-    connectDB/0,
-    closeDB/1,
+    connect_db/0,
+    close_db/1,
     query/2, query/3]).
 
-connectDB() ->
+connect_db() ->
     mysql:start_link([
         {host, "localhost"},
         {user, "root"},
         {password, "root"},
         {database, "contents_db"}]).
 
-closeDB(Pid) ->
+close_db(Pid) ->
     mysql:stop(Pid).
 
 query(Pid, Query) ->

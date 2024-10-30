@@ -13,8 +13,8 @@ generate_uuid() ->
 
 register_video(VideoName) ->
     VideoID = generate_uuid(),
-    {ok, Pid} = vstreamer_database:connectDB(),
-    mysql:query(
+    {ok, Pid} = vstreamer_database:connect_db(),
+    vstreamer_database:query(
         Pid,
         "INSERT INTO videos (id, title) VALUES (?, ?)",
         [VideoID, VideoName]
@@ -35,7 +35,7 @@ load_video(VideoPath) ->
     end.
 
 get_video(VideoID) ->
-    {ok, Pid} = vstreamer_database:connectDB(),
+    {ok, Pid} = vstreamer_database:connect_db(),
     {ok, Col, Row} = vstreamer_database:query(
         Pid,
         "SELECT id, title FROM videos WHERE id = ?",
@@ -47,10 +47,9 @@ get_video(VideoID) ->
     end.
 
 get_video_list() ->
-    {ok, Pid} = vstreamer_database:connectDB(),
+    {ok, Pid} = vstreamer_database:connect_db(),
     {ok, Col, Rows} = vstreamer_database:query(Pid, "SELECT id, title FROM videos"),
     lists:map(
         fun(Row) -> maps:from_list(lists:zip(Col, Row)) end,
         Rows
     ).
-        
