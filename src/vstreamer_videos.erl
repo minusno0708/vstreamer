@@ -35,7 +35,10 @@ load_video(VideoPath) ->
     end.
 
 get_video_list() ->
-    [hd(lists:reverse(string:replace(Path, "videos/", ""))) ||
-        Path <- filelib:wildcard("videos/*"),
-        filelib:is_dir(Path)
-    ].
+    {ok, Pid} = vstreamer_database:connectDB(),
+    {ok, Col, Rows} = mysql:query(Pid, "SELECT id, title FROM videos"),
+    lists:map(
+        fun(Row) -> maps:from_list(lists:zip(Col, Row)) end,
+        Rows
+    ).
+        

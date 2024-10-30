@@ -38,8 +38,7 @@ stream_handler(VideoPath) ->
 video_handler() ->
     VideoList = vstreamer_videos:get_video_list(),
     Header = json_content_header(),
-    Resp = jsone:encode(#{<<"videos">> => [#{<<"id">> => list_to_binary(Video)} || Video <- VideoList]}),
-    {200, Header, Resp}.
+    {200, Header, jsone:encode(#{<<"videos">> => VideoList})}.
 
 upload_handler(Body) ->
     case extract_video(Body) of
