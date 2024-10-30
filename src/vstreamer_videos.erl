@@ -1,6 +1,6 @@
 -module(vstreamer_videos).
 
--export([is_exist_video/1, register_video/1, load_video/1, get_video_list/0]).
+-export([is_exist_video/1, register_video/1, load_video/1, get_video/1, get_video_list/0]).
 
 is_exist_video(VideoName) ->
     case filelib:is_dir("videos/" ++ binary_to_list(VideoName)) of
@@ -34,9 +34,21 @@ load_video(VideoPath) ->
             {error, Reason}
     end.
 
+get_video(VideoID) ->
+    {ok, Pid} = vstreamer_database:connectDB(),
+    {ok, Col, Row} = vstreamer_database:query(
+        Pid,
+        "SELECT id, title FROM videos WHERE id = ?",
+        [VideoID]
+    ),
+    case Row of
+        [] -> {error, <<"Not found!">>};
+        _ -> {ok, maps:from_list(lists:zip(Col, hd(Row)))}
+    end.
+
 get_video_list() ->
     {ok, Pid} = vstreamer_database:connectDB(),
-    {ok, Col, Rows} = mysql:query(Pid, "SELECT id, title FROM videos"),
+    {ok, Col, Rows} = vstreamer_database:query(Pid, "SELECT id, title FROM videos"),
     lists:map(
         fun(Row) -> maps:from_list(lists:zip(Col, Row)) end,
         Rows
