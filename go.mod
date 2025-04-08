@@ -1,4 +1,4 @@
-module vstreamer
+module github.com/minusno0708/vstreamer
 
 go 1.24.1
 
