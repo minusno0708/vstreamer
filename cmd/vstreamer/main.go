@@ -1,35 +1,36 @@
 package main
 
 import (
-	"fmt"
-	"log"
 	"net/http"
-	"strings"
+
+	"github.com/labstack/echo/v4"
 )
 
 func main() {
-	http.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
-		fmt.Fprintf(w, "Hello, world!")
+	e := echo.New()
+
+	e.GET("/", func(c echo.Context) error {
+		return c.String(http.StatusOK, "Hello, World!")
 	})
 
-	http.HandleFunc("/pages/", func(w http.ResponseWriter, r *http.Request) {
-		pageName := strings.TrimPrefix(r.URL.Path, "/page/")
-		fmt.Fprintf(w, "show %s page", pageName)
+	e.GET("pages/:name", func(c echo.Context) error {
+		pageName := c.Param("name")
+		return c.String(http.StatusOK, "show "+pageName+" page")
 	})
 
-	http.HandleFunc("/streams/", func(w http.ResponseWriter, r *http.Request) {
-		videoPath := strings.TrimPrefix(r.URL.Path, "/stream/")
-		fmt.Fprintf(w, "stream %s video", videoPath)
+	e.GET("streams/:path", func(c echo.Context) error {
+		path := c.Param("path")
+		return c.String(http.StatusOK, "stream "+path+" video")
 	})
 
-	http.HandleFunc("/videos/", func(w http.ResponseWriter, r *http.Request) {
-		videoId := strings.TrimPrefix(r.URL.Path, "/videos/")
-		fmt.Fprintf(w, "show %s video", videoId)
+	e.GET("videos/:id", func(c echo.Context) error {
+		pageName := c.Param("id")
+		return c.String(http.StatusOK, "show "+pageName+" video")
 	})
 
-	http.HandleFunc("/upload", func(w http.ResponseWriter, r *http.Request) {
-		fmt.Fprintf(w, "upload video")
+	e.POST("upload", func(c echo.Context) error {
+		return c.String(http.StatusOK, "upload video")
 	})
 
-	log.Fatal(http.ListenAndServe(":8080", nil))
+	e.Logger.Fatal(e.Start(":8080"))
 }
