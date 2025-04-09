@@ -4,6 +4,8 @@ import (
 	"net/http"
 
 	"github.com/labstack/echo/v4"
+
+	"github.com/minusno0708/vstreamer/internal/interface/handler"
 )
 
 func main() {
@@ -13,24 +15,13 @@ func main() {
 		return c.String(http.StatusOK, "Hello, World!")
 	})
 
-	e.GET("pages/:name", func(c echo.Context) error {
-		pageName := c.Param("name")
-		return c.String(http.StatusOK, "show "+pageName+" page")
-	})
+	e.GET("/pages/:name", handler.PageHandler)
 
-	e.GET("streams/:path", func(c echo.Context) error {
-		path := c.Param("path")
-		return c.String(http.StatusOK, "stream "+path+" video")
-	})
+	e.GET("/streams/:path", handler.StreamHandler)
 
-	e.GET("videos/:id", func(c echo.Context) error {
-		pageName := c.Param("id")
-		return c.String(http.StatusOK, "show "+pageName+" video")
-	})
+	e.GET("/videos/:id", handler.VideoGetHandler)
 
-	e.POST("upload", func(c echo.Context) error {
-		return c.String(http.StatusOK, "upload video")
-	})
+	e.POST("/upload", handler.VideoUploadHandler)
 
 	e.Logger.Fatal(e.Start(":8080"))
 }
