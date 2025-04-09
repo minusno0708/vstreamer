@@ -7,7 +7,7 @@
 <body>
     <h1>Videos List</h1>
     <ul id="videoList"></ul>
-    <a href="/page">Home</a>
+    <a href="/pages">Home</a>
 
     <script>
         async function fetchVideos() {
@@ -22,7 +22,7 @@
 
             data.videos.forEach(video => {
                 const item = document.createElement('li');
-                item.innerHTML = `<a href="/page/video/${video.id}">${video.title}</a>`;
+                item.innerHTML = `<a href="/pages/video/${video.id}">${video.title}</a>`;
                 list.appendChild(item);
             });
         }

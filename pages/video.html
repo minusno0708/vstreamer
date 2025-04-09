@@ -12,8 +12,8 @@
 
     <video id="videoPlayer" width="640" controls></video>
     
-    <p><a href="/page/list">List</a></p>
-    <p><a href="/page">Home</a></p>
+    <p><a href="/pages/list">List</a></p>
+    <p><a href="/pages">Home</a></p>
 
     <script>
         function getVideoID() {
@@ -35,7 +35,7 @@
         }
 
         function playVideo() {
-            const url = `http://localhost:8080/stream/${videoID}/manifest.mpd`;
+            const url = `http://localhost:8080/streams/${videoID}/manifest.mpd`;
             const player = dashjs.MediaPlayer().create();
             player.initialize(document.querySelector("#videoPlayer"), url, true);
         }
