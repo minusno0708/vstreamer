@@ -15,6 +15,10 @@ func main() {
 		return c.String(http.StatusOK, "Hello, World!")
 	})
 
+	e.GET("/pages", func(c echo.Context) error {
+		return c.Redirect(http.StatusFound, "/pages/index")
+	})
+
 	e.GET("/pages/:name", handler.PageHandler)
 
 	e.GET("/streams/:path", handler.StreamHandler)
