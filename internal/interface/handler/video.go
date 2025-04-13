@@ -96,5 +96,10 @@ func VideoUploadHandler(c echo.Context) error {
 		return c.String(http.StatusInternalServerError, err.Error())
 	}
 
+	err = os.Remove(toVideoPath(videoFile.Filename))
+	if err != nil {
+		return c.String(http.StatusInternalServerError, err.Error())
+	}
+
 	return c.String(http.StatusOK, "upload video")
 }
