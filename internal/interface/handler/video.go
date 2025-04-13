@@ -5,6 +5,8 @@ import (
 	"mime/multipart"
 	"net/http"
 	"os"
+	"os/exec"
+	"strings"
 
 	"github.com/labstack/echo/v4"
 )
@@ -24,13 +26,48 @@ func saveVideoFile(videoFile *multipart.FileHeader) error {
 	}
 	defer src.Close()
 
-	dst, err := os.Create(toVideoPath(videoFile.Filename))
+	videoPath := toVideoPath(videoFile.Filename)
+
+	dst, err := os.Create(videoPath)
 	if err != nil {
 		return err
 	}
 	defer dst.Close()
 
 	if _, err = io.Copy(dst, src); err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func encodeVideo(videoId string) error {
+	videoDir := toVideoPath(videoId)
+
+	err := os.Mkdir(videoDir, 0755)
+	if err != nil {
+		return err
+	}
+
+	cmd := exec.Command(
+		"ffmpeg",
+		"-i", toVideoPath(videoId)+".mp4",
+		"-c:v", "libx264",
+		"-b:v", "1M",
+		"-s", "1280x720",
+		"-keyint_min", "150",
+		"-g", "150",
+		"-profile:v", "high",
+		"-preset", "medium",
+		"-c:a", "aac",
+		"-ac", "2",
+		"-b:a", "128k",
+		"-f", "dash",
+		toVideoPath(videoId)+"/video.mpd",
+	)
+
+	_, err = cmd.Output()
+	if err != nil {
 		return err
 	}
 
@@ -45,11 +82,18 @@ func VideoGetHandler(c echo.Context) error {
 func VideoUploadHandler(c echo.Context) error {
 	videoFile, err := c.FormFile("video")
 	if err != nil {
-		return c.String(http.StatusBadRequest, "video not found")
+		return c.String(http.StatusBadRequest, err.Error())
 	}
 
-	if err := saveVideoFile(videoFile); err != nil {
-		return c.String(http.StatusInternalServerError, "failed to save video")
+	err = saveVideoFile(videoFile)
+	if err != nil {
+		return c.String(http.StatusInternalServerError, err.Error())
+	}
+
+	videoId := strings.Split(videoFile.Filename, ".")[0]
+	err = encodeVideo(videoId)
+	if err != nil {
+		return c.String(http.StatusInternalServerError, err.Error())
 	}
 
 	return c.String(http.StatusOK, "upload video")
