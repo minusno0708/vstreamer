@@ -23,6 +23,7 @@ func main() {
 
 	e.GET("/streams/:path", handler.StreamHandler)
 
+	e.GET("/videos", handler.GetVideosHandler)
 	e.GET("/videos/:id", handler.VideoGetHandler)
 
 	e.POST("/upload", handler.VideoUploadHandler)

@@ -15,6 +15,11 @@ const (
 	videoDir = "videos/"
 )
 
+type Video struct {
+	Id    string `json:"id"`
+	Title string `json:"title"`
+}
+
 func toVideoPath(videoName string) string {
 	return videoDir + videoName
 }
@@ -72,6 +77,23 @@ func encodeVideo(videoId string) error {
 	}
 
 	return nil
+}
+
+func GetVideosHandler(c echo.Context) error {
+	videoFiles, err := os.ReadDir(videoDir)
+	if err != nil {
+		return c.String(http.StatusInternalServerError, err.Error())
+	}
+
+	videoList := make([]Video, 0)
+	for _, file := range videoFiles {
+		if file.IsDir() {
+			videoId := file.Name()
+			videoList = append(videoList, Video{Id: videoId, Title: videoId})
+		}
+	}
+
+	return c.JSON(http.StatusOK, videoList)
 }
 
 func VideoGetHandler(c echo.Context) error {
