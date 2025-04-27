@@ -79,7 +79,7 @@ func encodeVideo(videoId string) error {
 	return nil
 }
 
-func GetVideosHandler(c echo.Context) error {
+func GetVideoListHandler(c echo.Context) error {
 	videoFiles, err := os.ReadDir(videoDir)
 	if err != nil {
 		return c.String(http.StatusInternalServerError, err.Error())
@@ -96,12 +96,12 @@ func GetVideosHandler(c echo.Context) error {
 	return c.JSON(http.StatusOK, videoList)
 }
 
-func VideoGetHandler(c echo.Context) error {
+func GetVideoHandler(c echo.Context) error {
 	pageName := c.Param("id")
 	return c.String(http.StatusOK, "show "+pageName+" video")
 }
 
-func VideoUploadHandler(c echo.Context) error {
+func UploadVideoHandler(c echo.Context) error {
 	videoFile, err := c.FormFile("video")
 	if err != nil {
 		return c.String(http.StatusBadRequest, err.Error())

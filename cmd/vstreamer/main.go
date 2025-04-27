@@ -23,10 +23,10 @@ func main() {
 
 	e.GET("/streams/:path", handler.StreamHandler)
 
-	e.GET("/videos", handler.GetVideosHandler)
-	e.GET("/videos/:id", handler.VideoGetHandler)
+	e.GET("/videos", handler.GetVideoListHandler)
+	e.GET("/videos/:id", handler.GetVideoHandler)
 
-	e.POST("/upload", handler.VideoUploadHandler)
+	e.POST("/upload", handler.UploadVideoHandler)
 
 	e.Logger.Fatal(e.Start(":8080"))
 }
