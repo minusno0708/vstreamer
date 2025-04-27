@@ -97,8 +97,8 @@ func GetVideoListHandler(c echo.Context) error {
 }
 
 func GetVideoHandler(c echo.Context) error {
-	pageName := c.Param("id")
-	return c.String(http.StatusOK, "show "+pageName+" video")
+	videoId := c.Param("id")
+	return c.JSON(http.StatusOK, Video{Id: videoId, Title: videoId})
 }
 
 func UploadVideoHandler(c echo.Context) error {
