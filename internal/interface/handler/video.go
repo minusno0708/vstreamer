@@ -68,10 +68,15 @@ func encodeVideo(videoId string) error {
 		"-ac", "2",
 		"-b:a", "128k",
 		"-f", "dash",
-		toVideoPath(videoId)+"/video.mpd",
+		toVideoPath(videoId)+"/manifest.mpd",
 	)
 
 	_, err = cmd.Output()
+	if err != nil {
+		return err
+	}
+
+	err = os.Remove(toVideoPath(videoId) + ".mp4")
 	if err != nil {
 		return err
 	}
@@ -113,15 +118,8 @@ func UploadVideoHandler(c echo.Context) error {
 	}
 
 	videoId := strings.Split(videoFile.Filename, ".")[0]
-	err = encodeVideo(videoId)
-	if err != nil {
-		return c.String(http.StatusInternalServerError, err.Error())
-	}
 
-	err = os.Remove(toVideoPath(videoFile.Filename))
-	if err != nil {
-		return c.String(http.StatusInternalServerError, err.Error())
-	}
+	go encodeVideo(videoId)
 
 	return c.String(http.StatusOK, "upload video")
 }
