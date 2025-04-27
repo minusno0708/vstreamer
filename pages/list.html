@@ -20,7 +20,9 @@
             const data = await response.json();
             const list = document.getElementById('videoList');
 
-            data.videos.forEach(video => {
+            console.log(data);
+
+            data.forEach(video => {
                 const item = document.createElement('li');
                 item.innerHTML = `<a href="/pages/video/${video.id}">${video.title}</a>`;
                 list.appendChild(item);
