@@ -20,7 +20,7 @@ func main() {
 	})
 
 	e.GET("/pages/:name", handler.PageHandler)
-	e.GET("/pages/video/:id", handler.VideoPageHandler)
+	e.GET("/pages/videos/:id", handler.VideoPageHandler)
 
 	e.GET("/streams/:path", handler.StreamHandler)
 
