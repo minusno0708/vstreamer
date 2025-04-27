@@ -3,7 +3,6 @@
 <head>
     <meta charset="UTF-8">
     <title>MPEG-DASH Video Streaming</title>
-    <script src="https://cdn.jsdelivr.net/npm/dashjs@4.0.0/dist/dash.all.min.js"></script>
 </head>
 <body>
     <h1>Video Streaming Server</h1>
@@ -15,6 +14,7 @@
     <p><a href="/pages/videos">List</a></p>
     <p><a href="/pages">Home</a></p>
 
+    <script src="https://cdn.dashjs.org/latest/modern/umd/dash.all.min.js"></script>
     <script>
         function getVideoID() {
             const url = window.location.href;
@@ -35,7 +35,7 @@
         }
 
         function playVideo() {
-            const url = `http://localhost:8080/streams/${videoID}/manifest.mpd`;
+            const url = `http://localhost:8080/streams/${videoID}/video.mpd`;
             const player = dashjs.MediaPlayer().create();
             player.initialize(document.querySelector("#videoPlayer"), url, true);
         }
