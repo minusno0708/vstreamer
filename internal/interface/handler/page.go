@@ -30,3 +30,9 @@ func PageHandler(c echo.Context) error {
 
 	return c.File(pagePath)
 }
+
+func VideoPageHandler(c echo.Context) error {
+	pagePath := toPagePath("video")
+
+	return c.File(pagePath)
+}
