@@ -15,7 +15,7 @@ func toPagePath(pageName string) string {
 }
 
 func isPageExist(path string) bool {
-	_, err := os.Stat(toPagePath(path))
+	_, err := os.Stat(path)
 	return err == nil
 }
 
