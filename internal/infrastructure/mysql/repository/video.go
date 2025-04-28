@@ -16,12 +16,12 @@ func NewVideoRepository(db *sql.DB) *VideoRepository {
 	}
 }
 
-func (r *VideoRepository) Save(video *domain.Video) error {
+func (r *VideoRepository) Save(video *domain.Video) (string, error) {
 	_, err := r.db.Exec("INSERT INTO videos (id, name) VALUES (?, ?)", video.ID, video.Name)
 	if err != nil {
-		return err
+		return "", err
 	}
-	return nil
+	return video.ID, nil
 }
 
 func (r *VideoRepository) FindByID(id string) (*domain.Video, error) {

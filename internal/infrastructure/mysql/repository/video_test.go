@@ -21,31 +21,11 @@ func TestSave(t *testing.T) {
 	videoRepo := NewVideoRepository(db)
 	video := domain.NewVideo(testVideo.Name)
 
-	err = videoRepo.Save(video)
+	videoID, err := videoRepo.Save(video)
 	if err != nil {
 		t.Fatalf("Failed to save video: %v", err)
 	}
-}
-
-func TestFindByName(t *testing.T) {
-	db, err := mysql.NewConnection()
-	if err != nil {
-		t.Fatalf("Failed to connect to database: %v", err)
-	}
-	defer db.Close()
-	videoRepo := NewVideoRepository(db)
-	video, err := videoRepo.FindByName(testVideo.Name)
-	if err != nil {
-		t.Fatalf("Failed to find video by name: %v", err)
-	}
-	if video == nil {
-		t.Fatal("Expected to find a video, but got nil")
-	}
-	if video.Name != testVideo.Name {
-		t.Fatalf("Expected video name %s, but got %s", testVideo.Name, video.Name)
-	}
-
-	testVideo.ID = video.ID
+	testVideo.ID = videoID
 }
 
 func TestFindByID(t *testing.T) {
@@ -64,6 +44,25 @@ func TestFindByID(t *testing.T) {
 	}
 	if video.ID != testVideo.ID {
 		t.Fatalf("Expected video ID %s, but got %s", testVideo.ID, video.ID)
+	}
+	if video.Name != testVideo.Name {
+		t.Fatalf("Expected video name %s, but got %s", testVideo.Name, video.Name)
+	}
+}
+
+func TestFindByName(t *testing.T) {
+	db, err := mysql.NewConnection()
+	if err != nil {
+		t.Fatalf("Failed to connect to database: %v", err)
+	}
+	defer db.Close()
+	videoRepo := NewVideoRepository(db)
+	video, err := videoRepo.FindByName(testVideo.Name)
+	if err != nil {
+		t.Fatalf("Failed to find video by name: %v", err)
+	}
+	if video == nil {
+		t.Fatal("Expected to find a video, but got nil")
 	}
 	if video.Name != testVideo.Name {
 		t.Fatalf("Expected video name %s, but got %s", testVideo.Name, video.Name)
