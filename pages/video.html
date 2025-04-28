@@ -7,7 +7,7 @@
 <body>
     <h1>Video Streaming Server</h1>
 
-    <p id="videoTitle"></p>
+    <p id="videoName"></p>
 
     <video id="videoPlayer" width="640" controls></video>
     
@@ -22,7 +22,7 @@
             return parts[parts.length - 1];
         }
 
-        async function getVideoTitle() {
+        async function getVideoName() {
             const response = await fetch(`/videos/${videoID}`);
 
             if (!response.ok) {
@@ -30,8 +30,8 @@
             }
 
             const data = await response.json();
-            const title = data.title;
-            document.getElementById('videoTitle').innerText = title;
+            const name = data.name;
+            document.getElementById('videoName').innerText = name;
         }
 
         function playVideo() {
@@ -41,7 +41,7 @@
         }
 
         const videoID = getVideoID();
-        getVideoTitle();
+        getVideoName();
         playVideo();
     </script>
 </body>

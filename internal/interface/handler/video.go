@@ -16,8 +16,8 @@ const (
 )
 
 type Video struct {
-	Id    string `json:"id"`
-	Title string `json:"title"`
+	ID   string `json:"id"`
+	Name string `json:"name"`
 }
 
 func toVideoPath(videoName string) string {
@@ -94,7 +94,7 @@ func GetVideoListHandler(c echo.Context) error {
 	for _, file := range videoFiles {
 		if file.IsDir() {
 			videoId := file.Name()
-			videoList = append(videoList, Video{Id: videoId, Title: videoId})
+			videoList = append(videoList, Video{ID: videoId, Name: videoId})
 		}
 	}
 
@@ -103,7 +103,7 @@ func GetVideoListHandler(c echo.Context) error {
 
 func GetVideoHandler(c echo.Context) error {
 	videoId := c.Param("id")
-	return c.JSON(http.StatusOK, Video{Id: videoId, Title: videoId})
+	return c.JSON(http.StatusOK, Video{ID: videoId, Name: videoId})
 }
 
 func UploadVideoHandler(c echo.Context) error {
