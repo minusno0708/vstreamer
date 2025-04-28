@@ -1,6 +1,6 @@
 services:
   db:
-    image: mariadb:11.5.2
+    image: mysql:9.3
     volumes:
       - ./db/initdb.d:/docker-entrypoint-initdb.d
     ports:
