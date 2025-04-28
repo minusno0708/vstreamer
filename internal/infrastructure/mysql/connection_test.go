@@ -1,11 +1,11 @@
-package db
+package mysql
 
 import (
 	"testing"
 )
 
-func TestNewDBConnection(t *testing.T) {
-	db, err := NewDBConnection()
+func TestNewConnection(t *testing.T) {
+	db, err := NewConnection()
 	if err != nil {
 		t.Fatalf("Failed to connect to database: %v", err)
 	}

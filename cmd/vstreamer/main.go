@@ -5,12 +5,12 @@ import (
 
 	"github.com/labstack/echo/v4"
 
-	"github.com/minusno0708/vstreamer/internal/infrastructure/db"
+	"github.com/minusno0708/vstreamer/internal/infrastructure/mysql"
 	"github.com/minusno0708/vstreamer/internal/interface/handler"
 )
 
 func main() {
-	db, err := db.NewDBConnection()
+	db, err := mysql.NewConnection()
 	if err != nil {
 		panic(err)
 	}
