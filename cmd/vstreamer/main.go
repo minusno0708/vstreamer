@@ -5,10 +5,17 @@ import (
 
 	"github.com/labstack/echo/v4"
 
+	"github.com/minusno0708/vstreamer/internal/infrastructure/db"
 	"github.com/minusno0708/vstreamer/internal/interface/handler"
 )
 
 func main() {
+	db, err := db.NewDBConnection()
+	if err != nil {
+		panic(err)
+	}
+	defer db.Close()
+
 	e := echo.New()
 
 	e.GET("/", func(c echo.Context) error {
