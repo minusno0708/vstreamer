@@ -4,15 +4,8 @@ import (
 	"os"
 
 	"github.com/labstack/echo/v4"
+	"github.com/minusno0708/vstreamer/internal/utils"
 )
-
-const (
-	pagesDir = "pages/"
-)
-
-func toPagePath(pageName string) string {
-	return pagesDir + pageName + ".html"
-}
 
 func isPageExist(path string) bool {
 	_, err := os.Stat(path)
@@ -22,17 +15,17 @@ func isPageExist(path string) bool {
 func PageHandler(c echo.Context) error {
 	pageName := c.Param("name")
 
-	pagePath := toPagePath(pageName)
+	pagePath := utils.ToPagePath(pageName)
 
 	if !isPageExist(pagePath) {
-		pagePath = toPagePath("404")
+		pagePath = utils.ToPagePath("404")
 	}
 
 	return c.File(pagePath)
 }
 
 func VideoPageHandler(c echo.Context) error {
-	pagePath := toPagePath("video")
+	pagePath := utils.ToPagePath("video")
 
 	return c.File(pagePath)
 }
