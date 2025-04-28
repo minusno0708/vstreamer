@@ -1,125 +1,56 @@
 package handler
 
 import (
-	"io"
-	"mime/multipart"
 	"net/http"
-	"os"
-	"os/exec"
-	"strings"
 
 	"github.com/labstack/echo/v4"
+	"github.com/minusno0708/vstreamer/internal/usecase"
 )
 
-const (
-	videoDir = "videos/"
-)
-
-type Video struct {
-	ID   string `json:"id"`
-	Name string `json:"name"`
+type VideoHandlerInterface interface {
+	GetVideosHandler(c echo.Context) error
+	GetVideoHandler(c echo.Context) error
+	UploadVideoHandler(c echo.Context) error
 }
 
-func toVideoPath(videoName string) string {
-	return videoDir + videoName
+type videoHandler struct {
+	VideoUsecase usecase.VideoUseCase
 }
 
-func saveVideoFile(videoFile *multipart.FileHeader) error {
-	src, err := videoFile.Open()
-	if err != nil {
-		return err
+func NewVideoHandler(videoUsecase usecase.VideoUseCase) *videoHandler {
+	return &videoHandler{
+		VideoUsecase: videoUsecase,
 	}
-	defer src.Close()
-
-	videoPath := toVideoPath(videoFile.Filename)
-
-	dst, err := os.Create(videoPath)
-	if err != nil {
-		return err
-	}
-	defer dst.Close()
-
-	if _, err = io.Copy(dst, src); err != nil {
-		return err
-	}
-
-	return nil
 }
 
-func encodeVideo(videoId string) error {
-	videoDir := toVideoPath(videoId)
-
-	err := os.Mkdir(videoDir, 0755)
-	if err != nil {
-		return err
-	}
-
-	cmd := exec.Command(
-		"ffmpeg",
-		"-i", toVideoPath(videoId)+".mp4",
-		"-c:v", "libx264",
-		"-b:v", "1M",
-		"-s", "1280x720",
-		"-keyint_min", "150",
-		"-g", "150",
-		"-profile:v", "high",
-		"-preset", "medium",
-		"-c:a", "aac",
-		"-ac", "2",
-		"-b:a", "128k",
-		"-f", "dash",
-		toVideoPath(videoId)+"/manifest.mpd",
-	)
-
-	_, err = cmd.Output()
-	if err != nil {
-		return err
-	}
-
-	err = os.Remove(toVideoPath(videoId) + ".mp4")
-	if err != nil {
-		return err
-	}
-
-	return nil
-}
-
-func GetVideoListHandler(c echo.Context) error {
-	videoFiles, err := os.ReadDir(videoDir)
+func (h *videoHandler) GetVideosHandler(c echo.Context) error {
+	videoList, err := h.VideoUsecase.FindAll()
 	if err != nil {
 		return c.String(http.StatusInternalServerError, err.Error())
-	}
-
-	videoList := make([]Video, 0)
-	for _, file := range videoFiles {
-		if file.IsDir() {
-			videoId := file.Name()
-			videoList = append(videoList, Video{ID: videoId, Name: videoId})
-		}
 	}
 
 	return c.JSON(http.StatusOK, videoList)
 }
 
-func GetVideoHandler(c echo.Context) error {
+func (h *videoHandler) GetVideoHandler(c echo.Context) error {
 	videoId := c.Param("id")
-	return c.JSON(http.StatusOK, Video{ID: videoId, Name: videoId})
+	video, err := h.VideoUsecase.FindByID(videoId)
+	if err != nil {
+		return c.String(http.StatusInternalServerError, err.Error())
+	}
+	return c.JSON(http.StatusOK, video)
 }
 
-func UploadVideoHandler(c echo.Context) error {
+func (h *videoHandler) UploadVideoHandler(c echo.Context) error {
 	videoFile, err := c.FormFile("video")
 	if err != nil {
 		return c.String(http.StatusBadRequest, err.Error())
 	}
 
-	err = saveVideoFile(videoFile)
+	err = h.VideoUsecase.Save(videoFile)
 	if err != nil {
 		return c.String(http.StatusInternalServerError, err.Error())
 	}
-
-	videoId := strings.Split(videoFile.Filename, ".")[0]
-
-	go encodeVideo(videoId)
 
 	return c.String(http.StatusOK, "upload video")
 }
