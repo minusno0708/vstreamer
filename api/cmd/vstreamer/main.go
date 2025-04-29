@@ -43,7 +43,7 @@ func main() {
 	e.GET("/videos", videoHandler.GetVideosHandler)
 	e.GET("/videos/:id", videoHandler.GetVideoHandler)
 
-	e.POST("/upload", videoHandler.UploadVideoHandler)
+	e.POST("/videos", videoHandler.UploadVideoHandler)
 
 	e.Logger.Fatal(e.Start(":8080"))
 }
