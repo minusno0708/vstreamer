@@ -3,18 +3,18 @@
 <head>
     <meta charset="UTF-8">
     <title>MPEG-DASH Video Streaming</title>
-    <script src="https://cdn.jsdelivr.net/npm/dashjs@4.0.0/dist/dash.all.min.js"></script>
 </head>
 <body>
     <h1>Video Streaming Server</h1>
 
-    <p id="videoTitle"></p>
+    <p id="videoName"></p>
 
     <video id="videoPlayer" width="640" controls></video>
     
-    <p><a href="/page/list">List</a></p>
-    <p><a href="/page">Home</a></p>
+    <p><a href="/pages/videos">List</a></p>
+    <p><a href="/pages">Home</a></p>
 
+    <script src="https://cdn.dashjs.org/latest/modern/umd/dash.all.min.js"></script>
     <script>
         function getVideoID() {
             const url = window.location.href;
@@ -22,7 +22,7 @@
             return parts[parts.length - 1];
         }
 
-        async function getVideoTitle() {
+        async function getVideoName() {
             const response = await fetch(`/videos/${videoID}`);
 
             if (!response.ok) {
@@ -30,18 +30,18 @@
             }
 
             const data = await response.json();
-            const title = data.videos.title;
-            document.getElementById('videoTitle').innerText = title;
+            const name = data.name;
+            document.getElementById('videoName').innerText = name;
         }
 
         function playVideo() {
-            const url = `http://localhost:8080/stream/${videoID}/manifest.mpd`;
+            const url = `http://localhost:8080/streams/${videoID}/manifest.mpd`;
             const player = dashjs.MediaPlayer().create();
             player.initialize(document.querySelector("#videoPlayer"), url, true);
         }
 
         const videoID = getVideoID();
-        getVideoTitle();
+        getVideoName();
         playVideo();
     </script>
 </body>

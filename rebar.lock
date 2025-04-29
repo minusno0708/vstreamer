@@ -1,8 +1,0 @@
-[{<<"jsone">>,
-  {git,"https://github.com/sile/jsone.git",
-       {ref,"331b4a7b66cc9dc7c16ac067cf8a8297e0e669d8"}},
-  0},
- {<<"mysql">>,
-  {git,"https://github.com/mysql-otp/mysql-otp",
-       {ref,"caf5ff96c677a8fe0ce6f4082bc036c8fd27dd62"}},
-  0}].
