@@ -2,6 +2,7 @@ package repository
 
 import (
 	"bytes"
+	"fmt"
 	"io"
 	"os"
 
@@ -11,6 +12,7 @@ import (
 
 type VideoFileRepository interface {
 	Save(file *domain.VideoFile) error
+	Remove(file *domain.VideoFile) error
 }
 
 type videoFileRepository struct{}
@@ -19,8 +21,8 @@ func NewVideoFileRepository() *videoFileRepository {
 	return &videoFileRepository{}
 }
 
-func (r *videoFileRepository) Save(videoFile *domain.VideoFile) error {
-	videoPath := utils.ToVideoPath(videoFile.Name) + ".mp4"
+func (r *videoFileRepository) Save(file *domain.VideoFile) error {
+	videoPath := utils.ToVideoPath(file.Name) + ".mp4"
 
 	dst, err := os.Create(videoPath)
 	if err != nil {
@@ -28,9 +30,19 @@ func (r *videoFileRepository) Save(videoFile *domain.VideoFile) error {
 	}
 	defer dst.Close()
 
-	reader := bytes.NewReader(videoFile.Contents)
+	reader := bytes.NewReader(file.Contents)
 	if _, err = io.Copy(dst, reader); err != nil {
 		return err
+	}
+
+	return nil
+}
+
+func (r *videoFileRepository) Remove(file *domain.VideoFile) error {
+	videoPath := utils.ToVideoPath(file.Name) + ".mp4"
+
+	if err := os.Remove(videoPath); err != nil {
+		return fmt.Errorf("failed to remove file: %w", err)
 	}
 
 	return nil

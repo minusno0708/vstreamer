@@ -59,11 +59,6 @@ func encodeVideo(videoID string) error {
 		return err
 	}
 
-	err = os.Remove(utils.ToVideoPath(videoID) + ".mp4")
-	if err != nil {
-		return err
-	}
-
 	return nil
 }
 
@@ -81,7 +76,10 @@ func (u *videoUseCase) Save(videoFile *domain.VideoFile) error {
 		return err
 	}
 
-	go encodeVideo(videoID)
+	go func() {
+		encodeVideo(videoID)
+		u.videoFileRepo.Remove(videoFile)
+	}()
 
 	return nil
 }
