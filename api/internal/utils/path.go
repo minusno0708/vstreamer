@@ -1,8 +1,8 @@
 package utils
 
 const (
-	videoDir = "videos/"
-	pageDir  = "pages/"
+	videoDir = "../videos/"
+	pageDir  = "../pages/"
 )
 
 func ToVideoPath(videoID string) string {
