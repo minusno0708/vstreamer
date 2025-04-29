@@ -1,9 +1,11 @@
 package handler
 
 import (
+	"io"
 	"net/http"
 
 	"github.com/labstack/echo/v4"
+	"github.com/minusno0708/vstreamer/internal/domain"
 	"github.com/minusno0708/vstreamer/internal/usecase"
 )
 
@@ -42,10 +44,23 @@ func (h *videoHandler) GetVideoHandler(c echo.Context) error {
 }
 
 func (h *videoHandler) UploadVideoHandler(c echo.Context) error {
-	videoFile, err := c.FormFile("video")
+	file, err := c.FormFile("video")
 	if err != nil {
 		return c.String(http.StatusBadRequest, err.Error())
 	}
+
+	src, err := file.Open()
+	if err != nil {
+		return c.String(http.StatusInternalServerError, err.Error())
+	}
+	defer src.Close()
+
+	byteSrc, err := io.ReadAll(src)
+	if err != nil {
+		return c.String(http.StatusInternalServerError, err.Error())
+	}
+
+	videoFile := domain.NewVideoFile(file.Filename, byteSrc, file.Header.Get("Content-Type"))
 
 	err = h.VideoUsecase.Save(videoFile)
 	if err != nil {

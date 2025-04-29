@@ -1,53 +1,32 @@
 package usecase
 
 import (
-	"io"
-	"mime/multipart"
 	"os"
 	"os/exec"
 
 	"github.com/minusno0708/vstreamer/internal/domain"
-	"github.com/minusno0708/vstreamer/internal/infrastructure/mysql/repository"
+	filerepo "github.com/minusno0708/vstreamer/internal/infrastructure/filesystem/repository"
+	mysqlrepo "github.com/minusno0708/vstreamer/internal/infrastructure/mysql/repository"
 	"github.com/minusno0708/vstreamer/internal/utils"
 )
 
 type VideoUseCase interface {
-	Save(videoFile *multipart.FileHeader) error
+	Save(videoFile *domain.VideoFile) error
 	FindByID(id string) (*domain.Video, error)
 	FindByName(name string) (*domain.Video, error)
 	FindAll() ([]*domain.Video, error)
 }
 
 type videoUseCase struct {
-	videoRepo repository.VideoRepository
+	videoRepo     mysqlrepo.VideoRepository
+	videoFileRepo filerepo.VideoFileRepository
 }
 
-func NewVideoUseCase(videoRepo repository.VideoRepository) VideoUseCase {
+func NewVideoUseCase(videoRepo mysqlrepo.VideoRepository, videoFileRepo filerepo.VideoFileRepository) VideoUseCase {
 	return &videoUseCase{
-		videoRepo: videoRepo,
+		videoRepo:     videoRepo,
+		videoFileRepo: videoFileRepo,
 	}
-}
-
-func saveVideoFile(videoFile *multipart.FileHeader, videoID string) error {
-	src, err := videoFile.Open()
-	if err != nil {
-		return err
-	}
-	defer src.Close()
-
-	videoPath := utils.ToVideoPath(videoID) + ".mp4"
-
-	dst, err := os.Create(videoPath)
-	if err != nil {
-		return err
-	}
-	defer dst.Close()
-
-	if _, err = io.Copy(dst, src); err != nil {
-		return err
-	}
-
-	return nil
 }
 
 func encodeVideo(videoID string) error {
@@ -88,14 +67,16 @@ func encodeVideo(videoID string) error {
 	return nil
 }
 
-func (u *videoUseCase) Save(videoFile *multipart.FileHeader) error {
-	video := domain.NewVideo(videoFile.Filename)
+func (u *videoUseCase) Save(videoFile *domain.VideoFile) error {
+	video := domain.NewVideo(videoFile.Name)
 	videoID, err := u.videoRepo.Save(video)
 	if err != nil {
 		return err
 	}
 
-	err = saveVideoFile(videoFile, videoID)
+	videoFile.UpdateName(videoID)
+
+	err = u.videoFileRepo.Save(videoFile)
 	if err != nil {
 		return err
 	}
