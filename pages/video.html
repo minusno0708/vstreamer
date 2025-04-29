@@ -35,7 +35,7 @@
         }
 
         function playVideo() {
-            const url = `http://localhost:8080/streams/${videoID}/manifest.mpd`;
+            const url = `http://localhost:1323/streams/${videoID}/manifest.mpd`;
             const player = dashjs.MediaPlayer().create();
             player.initialize(document.querySelector("#videoPlayer"), url, true);
         }
