@@ -1,4 +1,9 @@
 services:
+  web:
+    image: nginx:1.27.5-alpine
+    ports:
+      - "8080:80"
+    
   db:
     image: mysql:9.3
     volumes:
