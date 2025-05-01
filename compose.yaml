@@ -3,7 +3,18 @@ services:
     image: nginx:1.27.5-alpine
     ports:
       - "8080:80"
-    
+  api:
+    build:
+      context: ./api
+      dockerfile: Dockerfile
+    volumes:
+      - ./api:/app
+      - ./pages:/app/pages
+      - ./videos:/app/videos
+    ports:
+      - "1323:1323"
+    depends_on:
+      - db
   db:
     image: mysql:9.3
     volumes:
