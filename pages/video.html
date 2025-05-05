@@ -11,8 +11,8 @@
 
     <video id="videoPlayer" width="640" controls></video>
     
-    <p><a href="/pages/videos">List</a></p>
-    <p><a href="/pages">Home</a></p>
+    <p><a href="/videos">List</a></p>
+    <p><a href="/">Home</a></p>
 
     <script src="https://cdn.dashjs.org/latest/modern/umd/dash.all.min.js"></script>
     <script>
@@ -23,7 +23,7 @@
         }
 
         async function getVideoName() {
-            const response = await fetch(`/videos/${videoID}`);
+            const response = await fetch(`/api/videos/${videoID}`);
 
             if (!response.ok) {
                 throw new Error('Failed to fetch video info');
@@ -35,7 +35,7 @@
         }
 
         function playVideo() {
-            const url = `http://localhost:1323/streams/${videoID}/manifest.mpd`;
+            const url = `http://api/streams/${videoID}/manifest.mpd`;
             const player = dashjs.MediaPlayer().create();
             player.initialize(document.querySelector("#videoPlayer"), url, true);
         }

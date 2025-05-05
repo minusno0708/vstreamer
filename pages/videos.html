@@ -7,11 +7,11 @@
 <body>
     <h1>Videos List</h1>
     <ul id="videoList"></ul>
-    <a href="/pages">Home</a>
+    <a href="/">Home</a>
 
     <script>
         async function fetchVideos() {
-            const response = await fetch('/videos');
+            const response = await fetch('/api/videos');
 
             if (!response.ok) {
                 throw new Error('Failed to fetch videos');
@@ -24,7 +24,7 @@
 
             data.forEach(video => {
                 const item = document.createElement('li');
-                item.innerHTML = `<a href="/pages/videos/${video.id}">${video.name}</a>`;
+                item.innerHTML = `<a href="videos/${video.id}">${video.name}</a>`;
                 list.appendChild(item);
             });
         }
