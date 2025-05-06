@@ -7,7 +7,7 @@ import (
 )
 
 func NewConnection() (*sql.DB, error) {
-	db, err := sql.Open("mysql", "root:root@tcp(localhost:3306)/contents_db")
+	db, err := sql.Open("mysql", "root:root@tcp(db:3306)/contents_db")
 	if err != nil {
 		return nil, err
 	}
