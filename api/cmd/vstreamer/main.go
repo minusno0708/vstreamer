@@ -14,7 +14,7 @@ import (
 )
 
 func main() {
-	db, err := mysql.NewConnection()
+	db, err := mysql.NewConnection("root:root@tcp(db:3306)/contents_db")
 	if err != nil {
 		panic(err)
 	}
