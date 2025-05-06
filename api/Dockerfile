@@ -3,9 +3,6 @@ FROM golang:1.24.2
 WORKDIR /app
 
 COPY . .
-COPY ../pages /app/pages
-COPY ../videos /app/videos
-
 
 RUN apt-get update && \
     apt-get install -y ffmpeg && \

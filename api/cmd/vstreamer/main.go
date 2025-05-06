@@ -34,19 +34,10 @@ func main() {
 		return c.String(http.StatusOK, "Hello, World!")
 	})
 
-	e.GET("/pages", func(c echo.Context) error {
-		return c.Redirect(http.StatusFound, "/pages/index")
-	})
-
-	e.GET("/pages/:name", handler.PageHandler)
-	e.GET("/pages/videos/:id", handler.VideoPageHandler)
-
-	e.GET("/streams/:id/:file", handler.StreamHandler)
-
 	e.GET("/videos", videoHandler.GetVideosHandler)
-	e.GET("/videos/:id", videoHandler.GetVideoHandler)
-
 	e.POST("/videos", videoHandler.UploadVideoHandler)
+
+	e.GET("/videos/:id", videoHandler.GetVideoHandler)
 
 	e.Logger.Fatal(e.Start(":1323"))
 }
