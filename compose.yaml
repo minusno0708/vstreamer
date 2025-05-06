@@ -20,13 +20,20 @@ services:
     ports:
       - "1323:1323"
     depends_on:
-      - db
+      db:
+        condition: service_healthy
   db:
     image: mysql:9.3
     volumes:
       - ./db/initdb.d:/docker-entrypoint-initdb.d
     ports:
       - "3306:3306"
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost", "-u", "root", "-proot"]
+      interval: 10s
+      retries: 5
+      start_period: 10s
+      timeout: 10s
     environment:
       MYSQL_ROOT_PASSWORD: root
       TZ: Asia/Tokyo
