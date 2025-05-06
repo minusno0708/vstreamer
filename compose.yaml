@@ -37,3 +37,11 @@ services:
     environment:
       MYSQL_ROOT_PASSWORD: root
       TZ: Asia/Tokyo
+  rabbitmq:
+    image: rabbitmq:4.1.0-alpine
+    ports:
+      - "5672:5672"
+      - "15672:15672"
+    environment:
+      RABBITMQ_DEFAULT_USER: user
+      RABBITMQ_DEFAULT_PASS: password
