@@ -1,9 +1,8 @@
-compile:
-	rebar3 compile
-
 run:
 	docker compose up -d
-	rebar3 shell
+restart:
+	docker compose restart
+reset:
+	docker compose down
+	find ./videos -mindepth 1 -maxdepth 1 -type d ! -name '.gitignore' -exec rm -rf {} +
 
-lint:
-	rebar3 lint
