@@ -5,7 +5,7 @@ import (
 )
 
 func TestNewConnection(t *testing.T) {
-	db, err := NewConnection()
+	db, err := NewConnection("root:root@tcp(localhost:3306)/contents_db")
 	if err != nil {
 		t.Fatalf("Failed to connect to database: %v", err)
 	}
