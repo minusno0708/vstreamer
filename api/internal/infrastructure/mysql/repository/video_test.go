@@ -13,7 +13,7 @@ var testVideo = &domain.Video{
 }
 
 func TestSave(t *testing.T) {
-	db, err := mysql.NewConnection()
+	db, err := mysql.NewConnection("root:root@tcp(localhost:3306)/contents_db")
 	if err != nil {
 		t.Fatalf("Failed to connect to database: %v", err)
 	}
@@ -29,7 +29,7 @@ func TestSave(t *testing.T) {
 }
 
 func TestFindByID(t *testing.T) {
-	db, err := mysql.NewConnection()
+	db, err := mysql.NewConnection("root:root@tcp(localhost:3306)/contents_db")
 	if err != nil {
 		t.Fatalf("Failed to connect to database: %v", err)
 	}
@@ -51,7 +51,7 @@ func TestFindByID(t *testing.T) {
 }
 
 func TestFindByName(t *testing.T) {
-	db, err := mysql.NewConnection()
+	db, err := mysql.NewConnection("root:root@tcp(localhost:3306)/contents_db")
 	if err != nil {
 		t.Fatalf("Failed to connect to database: %v", err)
 	}
@@ -70,7 +70,7 @@ func TestFindByName(t *testing.T) {
 }
 
 func TestFindAll(t *testing.T) {
-	db, err := mysql.NewConnection()
+	db, err := mysql.NewConnection("root:root@tcp(localhost:3306)/contents_db")
 	if err != nil {
 		t.Fatalf("Failed to connect to database: %v", err)
 	}

@@ -6,8 +6,8 @@ import (
 	_ "github.com/go-sql-driver/mysql"
 )
 
-func NewConnection() (*sql.DB, error) {
-	db, err := sql.Open("mysql", "root:root@tcp(db:3306)/contents_db")
+func NewConnection(dsn string) (*sql.DB, error) {
+	db, err := sql.Open("mysql", dsn)
 	if err != nil {
 		return nil, err
 	}
