@@ -44,7 +44,7 @@ services:
       MYSQL_ROOT_PASSWORD: ${DB_PASS}
       TZ: Asia/Tokyo
   rabbitmq:
-    image: rabbitmq:4.1.0-alpine
+    image: rabbitmq:4.1.0-management
     ports:
       - "5672:5672"
       - "15672:15672"
