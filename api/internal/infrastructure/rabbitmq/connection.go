@@ -12,3 +12,12 @@ func NewConnection(dsn string) (*amqp.Connection, error) {
 
 	return conn, nil
 }
+
+func NewChannel(conn *amqp.Connection) (*amqp.Channel, error) {
+	ch, err := conn.Channel()
+	if err != nil {
+		return nil, err
+	}
+
+	return ch, nil
+}
