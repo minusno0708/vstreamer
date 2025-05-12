@@ -3,7 +3,7 @@
 %% @end
 %%%-------------------------------------------------------------------
 
--module(vstreamer_encoder_sup).
+-module(ve_sup).
 
 -behaviour(supervisor).
 
