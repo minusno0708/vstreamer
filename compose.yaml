@@ -43,3 +43,12 @@ services:
     environment:
       MYSQL_ROOT_PASSWORD: ${DB_PASS}
       TZ: Asia/Tokyo
+  rabbitmq:
+    image: rabbitmq:4.1.0-management
+    ports:
+      - "${RABBITMQ_PORT}:5672"
+      - "${RABBITMQ_MANAGER_PORT}:15672"
+    environment:
+      RABBITMQ_DEFAULT_USER: ${RABBITMQ_USER}
+      RABBITMQ_DEFAULT_PASS: ${RABBITMQ_PASS}
+      
