@@ -2,7 +2,7 @@
     {description, "An OTP application"},
     {vsn, "0.1.0"},
     {registered, []},
-    {mod, {vstreamer_encoder_app, []}},
+    {mod, {ve_app, []}},
     {applications, [
         kernel,
         stdlib
