@@ -3,7 +3,7 @@ vstreamer
 
 動画配信アプリケーション
 
-Build
+Run
 -----
 
-    $ rebar3 compile
+    $ make run
