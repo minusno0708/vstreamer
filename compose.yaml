@@ -33,6 +33,22 @@ services:
       MQ_USER: ${RABBITMQ_USER}
       MQ_PASS: ${RABBITMQ_PASS}
       QUEUE_NAME: ${QUEUE_NAME}
+  encoder:
+    build:
+      context: ./encoder
+      dockerfile: Dockerfile
+    volumes:
+      - ./encoder:/app
+      - ./videos:/app/videos
+    depends_on:
+      - api
+      - rabbitmq
+    environment:
+      MQ_HOST: ${RABBITMQ_HOST}
+      MQ_PORT: ${RABBITMQ_PORT}
+      MQ_USER: ${RABBITMQ_USER}
+      MQ_PASS: ${RABBITMQ_PASS}
+      QUEUE_NAME: ${QUEUE_NAME}
   db:
     image: mysql:9.3
     volumes:
