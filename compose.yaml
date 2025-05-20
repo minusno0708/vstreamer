@@ -4,7 +4,7 @@ services:
     volumes:
       - ./nginx/default.conf:/etc/nginx/conf.d/default.conf
       - ./pages:/www/data/html
-      - ./videos:/www/data/videos
+      - ./contents/video/encoded:/www/data/videos
     ports:
       - "${WEB_PORT}:80"
     depends_on:
@@ -16,7 +16,7 @@ services:
       dockerfile: Dockerfile
     volumes:
       - ./api:/app
-      - ./videos:/app/videos
+      - ./contents/video/original:/app/videos
     ports:
       - "${API_PORT}:1323"
     depends_on:
@@ -39,7 +39,8 @@ services:
       dockerfile: Dockerfile
     volumes:
       - ./encoder:/app
-      - ./videos:/app/videos
+      - ./contents/video/original:/app/contents/video/original
+      - ./contents/video/encoded:/app/contents/video/encoded
     depends_on:
       - api
       - rabbitmq

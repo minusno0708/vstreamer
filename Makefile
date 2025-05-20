@@ -4,4 +4,4 @@ restart:
 	docker compose restart
 reset:
 	docker compose down
-	sudo rm -rf ./videos
+	sudo rm -rf ./contents
