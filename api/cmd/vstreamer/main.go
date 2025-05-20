@@ -66,8 +66,8 @@ func main() {
 
 	e.Use(middleware.Logger())
 
-	e.GET("/", func(c echo.Context) error {
-		return c.String(http.StatusOK, "vstreamer API")
+	e.GET("/health", func(c echo.Context) error {
+		return c.String(http.StatusOK, "vstreamer is running")
 	})
 
 	e.GET("/videos", videoHandler.GetVideosHandler)
