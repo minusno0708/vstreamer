@@ -1,12 +1,12 @@
 package file
 
 const (
-	baseVideoDir = "contents/video/original/"
-	encodeDir    = "contents/video/encoded/"
+	originalDir = "contents/video/original/"
+	encodeDir   = "contents/video/encoded/"
 )
 
-func ToBaseVideoPath(name, videoType string) string {
-	return baseVideoDir + name + "." + videoType
+func ToOriginalPath(name, videoType string) string {
+	return originalDir + name + "." + videoType
 }
 
 func ToEncodePath(name string) string {

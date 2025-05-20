@@ -59,10 +59,10 @@ func main() {
 		log.Printf("Received message: %s\n", msg.Body)
 
 		videoName := string(msg.Body)
-		basefilePath := file.ToBaseVideoPath(videoName, "mp4")
-		isExist := file.IsExist(basefilePath)
+		originalPath := file.ToOriginalPath(videoName, "mp4")
+		isExist := file.IsExist(originalPath)
 		if !isExist {
-			log.Printf("File does not exist: %s\n", basefilePath)
+			log.Printf("File does not exist: %s\n", originalPath)
 			continue
 		}
 
@@ -73,13 +73,13 @@ func main() {
 			continue
 		}
 
-		err = encode.Encode(basefilePath, videoDir)
+		err = encode.Encode(originalPath, videoDir)
 		if err != nil {
 			log.Printf("Failed to encode video: %v\n", err)
 			continue
 		}
 
-		err = file.RemoveFile(basefilePath)
+		err = file.RemoveFile(originalPath)
 		if err != nil {
 			log.Printf("Failed to remove file: %v\n", err)
 			continue
