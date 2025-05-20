@@ -4,5 +4,4 @@ restart:
 	docker compose restart
 reset:
 	docker compose down
-	find ./videos -mindepth 1 -maxdepth 1 -type d ! -name '.gitignore' -exec rm -rf {} +
-
+	sudo rm -rf ./videos
