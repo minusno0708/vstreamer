@@ -28,6 +28,11 @@ services:
       DB_USER: ${DB_USER}
       DB_PASS: ${DB_PASS}
       DB_NAME: ${DB_NAME}
+      MQ_HOST: ${RABBITMQ_HOST}
+      MQ_PORT: ${RABBITMQ_PORT}
+      MQ_USER: ${RABBITMQ_USER}
+      MQ_PASS: ${RABBITMQ_PASS}
+      QUEUE_NAME: ${QUEUE_NAME}
   db:
     image: mysql:9.3
     volumes:
