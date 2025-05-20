@@ -4,10 +4,18 @@ import (
 	"fmt"
 	"log"
 	"os"
+	"time"
+
+	amqp "github.com/rabbitmq/amqp091-go"
 
 	"github.com/minusno0708/vstreamer/encoder/internal/encode"
 	"github.com/minusno0708/vstreamer/encoder/internal/file"
 	"github.com/minusno0708/vstreamer/encoder/internal/rabbitmq"
+)
+
+const (
+	maxRetries = 10
+	retryDelay = 5 * time.Second
 )
 
 func main() {
@@ -35,7 +43,13 @@ func main() {
 	}
 	defer ch.Close()
 
-	msgs, err := rabbitmq.Receive(ch, queueName)
+	var msgs <-chan amqp.Delivery
+	for range maxRetries {
+		msgs, err = rabbitmq.Receive(ch, queueName)
+		if err == nil {
+			break
+		}
+	}
 	if err != nil {
 		log.Panicf("Failed to receive message: %v\n", err)
 		return
