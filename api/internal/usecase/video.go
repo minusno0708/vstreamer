@@ -1,9 +1,11 @@
 package usecase
 
 import (
+	"github.com/labstack/gommon/log"
 	"github.com/minusno0708/vstreamer/internal/domain"
 	filerepo "github.com/minusno0708/vstreamer/internal/infrastructure/filesystem/repository"
 	mysqlrepo "github.com/minusno0708/vstreamer/internal/infrastructure/mysql/repository"
+	mqrepo "github.com/minusno0708/vstreamer/internal/infrastructure/rabbitmq/repository"
 )
 
 type VideoUseCase interface {
@@ -16,12 +18,14 @@ type VideoUseCase interface {
 type videoUseCase struct {
 	videoRepo     mysqlrepo.VideoRepository
 	videoFileRepo filerepo.VideoFileRepository
+	mqRepo        mqrepo.RabbitMqRepository
 }
 
-func NewVideoUseCase(videoRepo mysqlrepo.VideoRepository, videoFileRepo filerepo.VideoFileRepository) VideoUseCase {
+func NewVideoUseCase(videoRepo mysqlrepo.VideoRepository, videoFileRepo filerepo.VideoFileRepository, mqRepo mqrepo.RabbitMqRepository) VideoUseCase {
 	return &videoUseCase{
 		videoRepo:     videoRepo,
 		videoFileRepo: videoFileRepo,
+		mqRepo:        mqRepo,
 	}
 }
 
@@ -40,6 +44,11 @@ func (u *videoUseCase) Save(videoFile *domain.VideoFile) error {
 	}
 
 	go func() {
+		err := u.mqRepo.Send(videoFile.Name)
+		if err != nil {
+			log.Error("Failed to send video file to RabbitMQ: ", err)
+			return
+		}
 		encodeVideo(videoID)
 		u.videoFileRepo.Remove(videoFile)
 	}()
