@@ -28,6 +28,27 @@ services:
       DB_USER: ${DB_USER}
       DB_PASS: ${DB_PASS}
       DB_NAME: ${DB_NAME}
+      MQ_HOST: ${RABBITMQ_HOST}
+      MQ_PORT: ${RABBITMQ_PORT}
+      MQ_USER: ${RABBITMQ_USER}
+      MQ_PASS: ${RABBITMQ_PASS}
+      QUEUE_NAME: ${QUEUE_NAME}
+  encoder:
+    build:
+      context: ./encoder
+      dockerfile: Dockerfile
+    volumes:
+      - ./encoder:/app
+      - ./videos:/app/videos
+    depends_on:
+      - api
+      - rabbitmq
+    environment:
+      MQ_HOST: ${RABBITMQ_HOST}
+      MQ_PORT: ${RABBITMQ_PORT}
+      MQ_USER: ${RABBITMQ_USER}
+      MQ_PASS: ${RABBITMQ_PASS}
+      QUEUE_NAME: ${QUEUE_NAME}
   db:
     image: mysql:9.3
     volumes:
@@ -43,3 +64,12 @@ services:
     environment:
       MYSQL_ROOT_PASSWORD: ${DB_PASS}
       TZ: Asia/Tokyo
+  rabbitmq:
+    image: rabbitmq:4.1.0-management
+    ports:
+      - "${RABBITMQ_PORT}:5672"
+      - "${RABBITMQ_MANAGER_PORT}:15672"
+    environment:
+      RABBITMQ_DEFAULT_USER: ${RABBITMQ_USER}
+      RABBITMQ_DEFAULT_PASS: ${RABBITMQ_PASS}
+      
