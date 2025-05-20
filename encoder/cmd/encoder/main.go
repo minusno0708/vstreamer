@@ -5,6 +5,8 @@ import (
 	"log"
 	"os"
 
+	"github.com/minusno0708/vstreamer/encoder/internal/encode"
+	"github.com/minusno0708/vstreamer/encoder/internal/file"
 	"github.com/minusno0708/vstreamer/encoder/internal/rabbitmq"
 )
 
@@ -41,5 +43,33 @@ func main() {
 
 	for msg := range msgs {
 		log.Printf("Received message: %s\n", msg.Body)
+
+		videoName := string(msg.Body)
+		basefilePath := file.ToBaseVideoPath(videoName, "mp4")
+		isExist := file.IsExist(basefilePath)
+		if !isExist {
+			log.Printf("File does not exist: %s\n", basefilePath)
+			continue
+		}
+
+		videoDir := file.ToEncodePath(videoName)
+		err := file.CreateDir(videoDir)
+		if err != nil {
+			log.Printf("Failed to create directory: %v\n", err)
+			continue
+		}
+
+		err = encode.Encode(basefilePath, videoDir)
+		if err != nil {
+			log.Printf("Failed to encode video: %v\n", err)
+			continue
+		}
+
+		err = file.RemoveFile(basefilePath)
+		if err != nil {
+			log.Printf("Failed to remove file: %v\n", err)
+			continue
+		}
+		log.Printf("Successfully encoded video: %s\n", videoName)
 	}
 }

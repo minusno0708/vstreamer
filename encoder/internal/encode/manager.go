@@ -1,23 +1,13 @@
-package usecase
+package encode
 
 import (
-	"os"
 	"os/exec"
-
-	"github.com/minusno0708/vstreamer/internal/utils"
 )
 
-func encodeVideo(videoID string) error {
-	videoDir := utils.ToVideoPath(videoID)
-
-	err := os.Mkdir(videoDir, 0755)
-	if err != nil {
-		return err
-	}
-
+func Encode(basePath, encodeDir string) error {
 	cmd := exec.Command(
 		"ffmpeg",
-		"-i", videoDir+".mp4",
+		"-i", basePath,
 		"-c:v", "libx264",
 		"-b:v", "1M",
 		"-s", "1280x720",
@@ -29,10 +19,10 @@ func encodeVideo(videoID string) error {
 		"-ac", "2",
 		"-b:a", "128k",
 		"-f", "dash",
-		videoDir+"/manifest.mpd",
+		encodeDir+"/manifest.mpd",
 	)
 
-	_, err = cmd.Output()
+	_, err := cmd.Output()
 	if err != nil {
 		return err
 	}

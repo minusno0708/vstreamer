@@ -49,8 +49,6 @@ func (u *videoUseCase) Save(videoFile *domain.VideoFile) error {
 			log.Error("Failed to send video file to RabbitMQ: ", err)
 			return
 		}
-		encodeVideo(videoID)
-		u.videoFileRepo.Remove(videoFile)
 	}()
 
 	return nil
