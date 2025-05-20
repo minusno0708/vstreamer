@@ -22,6 +22,12 @@ services:
     depends_on:
       db:
         condition: service_healthy
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:${API_PORT}/health"]
+      interval: 10s
+      retries: 5
+      start_period: 10s
+      timeout: 10s
     environment:
       DB_HOST: ${DB_HOST}
       DB_PORT: ${DB_PORT}
@@ -42,8 +48,8 @@ services:
       - ./contents/videos/original:/data/videos/original
       - ./contents/videos/encoded:/data/videos/encoded
     depends_on:
-      - api
-      - rabbitmq
+      api:
+        condition: service_healthy
     environment:
       MQ_HOST: ${RABBITMQ_HOST}
       MQ_PORT: ${RABBITMQ_PORT}
