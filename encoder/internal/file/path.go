@@ -1,8 +1,8 @@
 package file
 
 const (
-	originalDir = "contents/video/original/"
-	encodeDir   = "contents/video/encoded/"
+	originalDir = "/data/videos/original/"
+	encodeDir   = "/data/videos/encoded/"
 )
 
 func ToOriginalPath(name, videoType string) string {
