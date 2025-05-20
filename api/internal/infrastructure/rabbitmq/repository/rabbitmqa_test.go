@@ -3,7 +3,6 @@ package repository
 import (
 	"testing"
 
-	"github.com/minusno0708/vstreamer/internal/domain"
 	"github.com/minusno0708/vstreamer/internal/infrastructure/rabbitmq"
 )
 
@@ -20,13 +19,12 @@ func TestSend(t *testing.T) {
 	}
 	defer ch.Close()
 
-	encoderRepository, err := NewEncoderRepository(ch)
+	encoderRepository, err := NewRabbitMqRepository(ch, "video-encoder")
 	if err != nil {
 		t.Fatalf("Failed to create encoder repository: %v", err)
 	}
 
-	testVideoFile := domain.NewVideoFile("testvideo", []byte(""), "video/mp4")
-	err = encoderRepository.Send(testVideoFile)
+	err = encoderRepository.Send("testvideo")
 	if err != nil {
 		t.Fatalf("Failed to send video file: %v", err)
 	}

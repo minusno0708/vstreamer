@@ -5,23 +5,18 @@ import (
 	"time"
 
 	amqp "github.com/rabbitmq/amqp091-go"
-
-	"github.com/minusno0708/vstreamer/internal/domain"
 )
 
-type EncoderRepository interface {
-	Send(file *domain.VideoFile) error
+type RabbitMqRepository interface {
+	Send(msg string) error
 }
 
-type encoderRepository struct {
-	ch *amqp.Channel
+type rabbitMqRepository struct {
+	ch        *amqp.Channel
+	queueName string
 }
 
-const (
-	queueName = "video-encoder"
-)
-
-func NewEncoderRepository(ch *amqp.Channel) (*encoderRepository, error) {
+func NewRabbitMqRepository(ch *amqp.Channel, queueName string) (*rabbitMqRepository, error) {
 	_, err := ch.QueueDeclare(
 		queueName,
 		false,
@@ -34,24 +29,25 @@ func NewEncoderRepository(ch *amqp.Channel) (*encoderRepository, error) {
 		return nil, err
 	}
 
-	return &encoderRepository{
-		ch: ch,
+	return &rabbitMqRepository{
+		ch:        ch,
+		queueName: queueName,
 	}, nil
 }
 
-func (r *encoderRepository) Send(file *domain.VideoFile) error {
+func (r *rabbitMqRepository) Send(msg string) error {
 	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
 	defer cancel()
 
 	err := r.ch.PublishWithContext(
 		ctx,
 		"",
-		queueName,
+		r.queueName,
 		false,
 		false,
 		amqp.Publishing{
 			ContentType: "text/plain",
-			Body:        []byte(file.Name),
+			Body:        []byte(msg),
 		},
 	)
 	if err != nil {
