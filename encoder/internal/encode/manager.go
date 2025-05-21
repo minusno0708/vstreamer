@@ -5,11 +5,14 @@ import (
 )
 
 func Encode(originalPath, encodeDir string) error {
-	cmdBuilder := ffmpeg.NewCmdBuilder(originalPath, encodeDir)
+	cmdBuilder, err := ffmpeg.NewCmdBuilder(originalPath, encodeDir)
+	if err != nil {
+		return err
+	}
 
 	cmd := cmdBuilder.Build()
 
-	_, err := cmd.Output()
+	_, err = cmd.Output()
 	if err != nil {
 		return err
 	}
