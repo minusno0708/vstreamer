@@ -10,6 +10,9 @@ type Analyzer struct {
 	Streams []struct {
 		Width  int `json:"width"`
 		Height int `json:"height"`
+		Tags   struct {
+			Rotate string `json:"rotate"`
+		} `json:"tags"`
 	} `json:"streams"`
 }
 
@@ -18,7 +21,7 @@ func NewAnalyzer(path string) (*Analyzer, error) {
 		"ffprobe",
 		"-v", "error",
 		"-select_streams", "v:0",
-		"-show_entries", "stream=width,height",
+		"-show_entries", "stream",
 		"-of", "json",
 		path,
 	)
@@ -41,6 +44,17 @@ func NewAnalyzer(path string) (*Analyzer, error) {
 }
 
 func (a *Analyzer) GetResolution() string {
-	resolution := fmt.Sprintf("%dx%d", a.Streams[0].Width, a.Streams[0].Height)
-	return resolution
+	if !a.IsRotated() {
+		return fmt.Sprintf("%dx%d", a.Streams[0].Width, a.Streams[0].Height)
+	} else {
+		return fmt.Sprintf("%dx%d", a.Streams[0].Height, a.Streams[0].Width)
+	}
+}
+
+func (a *Analyzer) IsRotated() bool {
+	rotate := a.Streams[0].Tags.Rotate
+	if rotate == "90" || rotate == "270" {
+		return true
+	}
+	return false
 }
