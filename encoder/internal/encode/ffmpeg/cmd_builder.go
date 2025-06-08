@@ -1,17 +1,42 @@
 package ffmpeg
 
-import "os/exec"
+import (
+	"os/exec"
+)
+
+type CmdOption struct {
+	key   string
+	value string
+}
 
 type CmdBuilder struct {
 	basefilePath string
 	encodeDir    string
+	size         CmdOption
 }
 
-func NewCmdBuilder(basefilePath, encodeDir string) *CmdBuilder {
-	return &CmdBuilder{
-		basefilePath: basefilePath,
-		encodeDir:    encodeDir,
+func NewOption(key, value string) CmdOption {
+	return CmdOption{
+		key:   key,
+		value: value,
 	}
+}
+
+func NewCmdBuilder(basefilePath, encodeDir string) (*CmdBuilder, error) {
+	cmdBuilder := &CmdBuilder{}
+
+	cmdBuilder.basefilePath = basefilePath
+	cmdBuilder.encodeDir = encodeDir
+
+	analyzer, err := NewAnalyzer(basefilePath)
+	if err != nil {
+		return nil, err
+	}
+
+	resolution := analyzer.GetResolution()
+	cmdBuilder.size = NewOption("-s", resolution)
+
+	return cmdBuilder, nil
 }
 
 func (c *CmdBuilder) Build() *exec.Cmd {
@@ -20,7 +45,7 @@ func (c *CmdBuilder) Build() *exec.Cmd {
 		"-i", c.basefilePath,
 		"-c:v", "libx264",
 		"-b:v", "1M",
-		"-s", "1280x720",
+		c.size.key, c.size.value,
 		"-keyint_min", "150",
 		"-g", "150",
 		"-profile:v", "high",
