@@ -65,6 +65,7 @@ func main() {
 	e := echo.New()
 
 	e.Use(middleware.Logger())
+	e.Use(middleware.CORS())
 
 	e.GET("/health", func(c echo.Context) error {
 		return c.String(http.StatusOK, "vstreamer is running")
