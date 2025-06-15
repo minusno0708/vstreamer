@@ -10,11 +10,11 @@ export default function VideoList() {
     const fetchVideos = async () => {
         setLoading(true);
         try {
-            const response = await fetch('http://localhost:8080/api/videos');
-            if (!response.ok) {
+            const res = await fetch('http://localhost:8080/api/videos');
+            if (!res.ok) {
                 throw new Error('Failed to fetch videos');
             }
-            const data = await response.json();
+            const data = await res.json();
             setVideos(data);
         } catch (error) { 
             console.log('Error fetching videos:', error);
@@ -33,7 +33,7 @@ export default function VideoList() {
             ) : (
                 <ul>
                     {videos.map((video) => (
-                        VideoCard(video)
+                        <VideoCard key={video.id} {...video} />
                     ))}
                 </ul>
             )}
