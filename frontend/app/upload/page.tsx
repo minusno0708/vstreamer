@@ -32,7 +32,5 @@ async function handleUpload(formData: FormData) {
         throw new Error("Failed to upload video");
     }
 
-    console.log("Video uploaded successfully");
-
     redirect("/")
 }

@@ -31,11 +31,15 @@ export default function VideoList() {
             {loading ? (
                 <p>Loading...</p>
             ) : (
-                <ul>
-                    {videos.map((video) => (
-                        <VideoCard key={video.id} {...video} />
-                    ))}
-                </ul>
+                videos && videos.length > 0 ? (
+                    <ul>
+                        {videos.map((video) => (
+                            <VideoCard key={video.id} {...video} />
+                        ))}
+                    </ul>
+                ) : (
+                    <p>No Content</p>  
+                )
             )}
         </div>
     )
