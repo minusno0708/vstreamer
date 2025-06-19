@@ -3,23 +3,19 @@
 import { useEffect, useRef } from 'react'
 
 type VideoPlayerProps = {
-    id: string;
+    src: string;
 };
 
 export default function VideoPlayer(video: VideoPlayerProps) {
-    const src = `http://localhost:8080/contents/videos/${video.id}/manifest.mpd`;
-
     const videoRef = useRef<HTMLVideoElement | null>(null)
 
     useEffect(() => {
         let player: any
 
         const initDash = async () => {
-            console.log('Initializing DASH player for:', src)
-
             const dashjs = await import('dashjs')
             player = dashjs.MediaPlayer().create()
-            player.initialize(videoRef.current, src, true)
+            player.initialize(videoRef.current, video.src, true)
         }
 
         if (videoRef.current) {
@@ -29,7 +25,7 @@ export default function VideoPlayer(video: VideoPlayerProps) {
         return () => {
             player?.reset()
         }
-    }, [src])
+    }, [video])
 
     return (
         <video
