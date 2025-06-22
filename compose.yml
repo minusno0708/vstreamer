@@ -60,6 +60,7 @@ services:
     image: mysql:9.3
     volumes:
       - ./db/initdb.d:/docker-entrypoint-initdb.d
+      - db_data:/var/lib/mysql
     ports:
       - "${DB_PORT}:3306"
     healthcheck:
@@ -79,4 +80,7 @@ services:
     environment:
       RABBITMQ_DEFAULT_USER: ${RABBITMQ_USER}
       RABBITMQ_DEFAULT_PASS: ${RABBITMQ_PASS}
+
+volumes:
+  db_data:
       
