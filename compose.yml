@@ -10,6 +10,16 @@ services:
     depends_on:
       - api
       - db
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+    volumes:
+      - ./frontend:/app
+    ports:
+      - "${FRONTEND_PORT}:3000"
+    depends_on:
+      - api
   api:
     build:
       context: ./api
